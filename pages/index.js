@@ -134,7 +134,7 @@ const fetchSelectedDoc = async () => {
 
   return (
     <div style={{ padding: "20px", backgroundColor: "#121212", color: "#ffffff", minHeight: "100vh" }}>
-      <h1 style={{ color: "red", borderBottom: "2px solid red", paddingBottom: "10px" , whiteSpace: "nowrap" , overflow: "hidden" , maxWidth: "100%" }}>Cap Management for ReRyss</h1>
+      <h1 style={{ color: "red", borderBottom: "2px solid red", paddingBottom: "10px" , whiteSpace: "nowrap" , overflow: "hidden" , textOverflow: "ellipsis" , width: "100%" }}>Cap Management for ReRyss</h1>
       
       <div style={{ marginBottom: "20px" }}>
         <select onChange={(e) => setSelectedDoc(e.target.value)} value={selectedDoc} style={{ marginTop: "20px" , width: "60%" }}>
