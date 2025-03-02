@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { db } from "../lib/firebase";
 import { collection, getDocs, doc, getDoc, updateDoc, setDoc, deleteDoc } from "firebase/firestore";
+import { useMediaQuery } from "react-responsive";
 
 export default function Home() {
   const [docList, setDocList] = useState([]);
@@ -16,6 +17,9 @@ export default function Home() {
   const [newFieldValue, setNewFieldValue] = useState("");
   const [selectedFieldToDelete, setSelectedFieldToDelete] = useState("");
   const [isCopied, setIsCopied] = useState(false);
+  const isMobile = useMediaQuery({ maxWidth: 768 });
+  const [tempData, setTempData] = useState({});
+
 
   useEffect(() => {
     const fetchDocs = async () => {
@@ -33,40 +37,54 @@ export default function Home() {
     fetchDocs();
   }, []);
 
-  const fetchSelectedDoc = async () => {
-    if (!selectedDoc) return;
+const fetchSelectedDoc = async () => {
+  if (!selectedDoc) {
+    console.error("selectedDoc が選択されていません");
+    return;
+  }
+
+  try {
     const docRef = doc(db, "capstock", selectedDoc);
     const docSnap = await getDoc(docRef);
 
     if (docSnap.exists()) {
       const data = docSnap.data();
+      console.log("Firestore のデータ:", data);
+
+      setTempData(data); // tempDataにデータをセット
       setFieldList(Object.keys(data));
       const formattedText = Object.entries(data)
         .map(([key, value]) => `${key}: ${value}`)
         .join("\n");
+
       setPreviewText(formattedText);
       setIsDisplayed(true);
     } else {
+      console.warn("データが見つかりません:", selectedDoc);
+      setTempData({});
       setPreviewText("データが見つかりません");
       setFieldList([]);
       setIsDisplayed(false);
     }
+  } catch (error) {
+    console.error("fetchSelectedDoc のエラー:", error);
+  }
+};
+
+  const handleUpdateField = () => {
+    if (!selectedField || updateValue === "") return;
+    const oldValue = tempData[selectedField] || 0;
+    const changeAmount = Number(updateValue);
+    const newValue = operation === "increase" ? oldValue + changeAmount : oldValue - changeAmount;
+
+    const updatedData = { ...tempData, [selectedField]: newValue };
+    setTempData(updatedData);
+    setPreviewText(
+      Object.entries(updatedData)
+        .map(([key, value]) => `${key}: ${value}`)
+        .join("\n")
+    );
   };
-
-  const handleUpdateField = async () => {
-    if (!selectedDoc || !selectedField || updateValue === "") return;
-    const docRef = doc(db, "capstock", selectedDoc);
-    const docSnap = await getDoc(docRef);
-
-    if (docSnap.exists()) {
-      const data = docSnap.data();
-      const newValue = operation === "increase" ? (data[selectedField] || 0) + Number(updateValue) : (data[selectedField] || 0) - Number(updateValue);
-      const updatedData = { ...data, [selectedField]: newValue };
-      await updateDoc(docRef, updatedData);
-      fetchSelectedDoc();
-    }
-  };
-
   const handleCopyToClipboard = () => {
     if (!isSaved) return;
     navigator.clipboard.writeText(previewText).then(() => {
@@ -75,22 +93,16 @@ export default function Home() {
     });
   };
 
-  const handleAddField = async () => {
-    if (!selectedDoc || !newFieldName || newFieldValue === "") return;
-    const docRef = doc(db, "capstock", selectedDoc);
-    const docSnap = await getDoc(docRef);
-
-    if (docSnap.exists()) {
-      const data = docSnap.data();
-      if (!data[newFieldName]) {
-        const updatedData = { ...data, [newFieldName]: Number(newFieldValue) };
-        await updateDoc(docRef, updatedData);
-        fetchSelectedDoc();
-      }
-    } else {
-      await setDoc(docRef, { [newFieldName]: Number(newFieldValue) });
-      fetchSelectedDoc();
-    }
+  const handleAddField = () => {
+    if (!newFieldName || newFieldValue === "") return;
+    const updatedData = { ...tempData, [newFieldName]: Number(newFieldValue) };
+    setTempData(updatedData);
+    setFieldList(Object.keys(updatedData));
+    setPreviewText(
+      Object.entries(updatedData)
+        .map(([key, value]) => `${key}: ${value}`)
+        .join("\n")
+    );
   };
 
   const handleDeleteField = () => {
@@ -122,53 +134,53 @@ export default function Home() {
 
   return (
     <div style={{ padding: "20px", backgroundColor: "#121212", color: "#ffffff", minHeight: "100vh" }}>
-      <h1 style={{ color: "red", marginBottom: "20px" }}>Cap Management for ReRyss</h1>
+      <h1 style={{ color: "red", borderBottom: "2px solid red", paddingBottom: "10px" }}>Cap Management for ReRyss</h1>
       
       <div style={{ marginBottom: "20px" }}>
-        <select onChange={(e) => setSelectedDoc(e.target.value)} value={selectedDoc}>
+        <select onChange={(e) => setSelectedDoc(e.target.value)} value={selectedDoc} style={{ marginTop: "20px" , width: "60%" }}>
           <option value="">-- データを選択しやがれ --</option>
           {docList.map((docName) => (
             <option key={docName} value={docName}>{docName}</option>
           ))}
         </select>
-        <button onClick={fetchSelectedDoc} disabled={!selectedDoc} style={{ marginLeft: "10px" }}>表示する</button>
+        <button onClick={fetchSelectedDoc} disabled={!selectedDoc} style={{ marginLeft: "10px" , width: "20%" }}>表示する</button>
       </div>
 
       <div style={{ marginBottom: "20px" }}>
-        <select onChange={(e) => setSelectedField(e.target.value)} value={selectedField}>
-          <option value="">編集する酒クズ</option>
+        <select onChange={(e) => setSelectedField(e.target.value)} value={selectedField} style={{ width: "50%" }}>
+          <option value="">編集する酒クズを選びやがれ</option>
           {fieldList.map((field) => (
             <option key={field} value={field}>{field}</option>
           ))}
         </select>
-        <input type="number" placeholder="数量" value={updateValue} onChange={(e) => setUpdateValue(e.target.value)} maxLength={4} style={{ marginLeft: "10px", width: "60px" }} />
+        <input type="number" placeholder="キャップ数" value={updateValue} onChange={(e) => setUpdateValue(e.target.value)} style={{ marginLeft: "10px" , width: "10%", marginTop: "10px" }} />
         <input type="radio" name="operation" value="increase" checked={operation === "increase"} onChange={() => setOperation("increase")} style={{ marginLeft: "10px" }} /> 増
         <input type="radio" name="operation" value="decrease" checked={operation === "decrease"} onChange={() => setOperation("decrease")} style={{ marginLeft: "10px" }} /> 減
-        <button onClick={handleUpdateField} style={{ marginLeft: "10px" }}>反映</button>
+        <button onClick={handleUpdateField} style={{ marginLeft: "10px" , width: "20%", marginTop: "10px" }}>プレビューに反映</button>
       </div>
           
       <div style={{ marginBottom: "10px" }}>
-        <input type="text" placeholder="追加酒クズ名" value={newFieldName} onChange={(e) => setNewFieldName(e.target.value)} />
-        <input type="number" placeholder="数量" value={newFieldValue} onChange={(e) => setNewFieldValue(e.target.value)} maxLength={4} style={{ marginLeft: "10px", width: "60px" }} />
-        <button onClick={handleAddField} style={{ marginLeft: "10px" }}>酒クズ追加</button>
+        <input type="text" placeholder="追加酒クズ名入力" value={newFieldName} onChange={(e) => setNewFieldName(e.target.value)} style={{ width: "50%" }} />
+        <input type="number" placeholder="キャップ数" value={newFieldValue} onChange={(e) => setNewFieldValue(e.target.value)} maxLength={4} style={{ marginLeft: "10px", width: "10%" }} />
+        <button onClick={handleAddField} style={{ marginLeft: "10px" ,  width: "20%" }}>追加</button>
       </div>
       
       <div style={{ marginBottom: "10px" }}>
-        <select onChange={(e) => setSelectedFieldToDelete(e.target.value)} value={selectedFieldToDelete}>
-          <option value="">追放する酒ザコ</option>
+        <select onChange={(e) => setSelectedFieldToDelete(e.target.value)} value={selectedFieldToDelete} style={{ width: "50%" }}>
+          <option value="">追放酒ザコ選択</option>
           {fieldList.map((field) => (
             <option key={field} value={field}>{field}</option>
           ))}
         </select>
-        <button onClick={handleDeleteField} style={{ marginLeft: "10px" }}>酒ザコ追放</button>
+        <button onClick={handleDeleteField} style={{ marginLeft: "10px" , width: "20%" }}>追放</button>
       </div>
 
-      <textarea value={previewText} readOnly rows={10} cols={40} style={{ display: "block", margin: "30px 0" }}></textarea>      
-      <div style={{ display: "flex", alignItems: "center", marginBottom: "20px" }}>
+      <textarea value={previewText} readOnly rows={isMobile ? 5 : 10} style={{ width: "100%", marginTop: "20px", marginBottom: "20px" }}></textarea>
+      <div style={{ display: "flex", alignItems: "center", marginBottom: "20px"  , width: "30%" }}>
         <button onClick={handleSaveData} disabled={!isDisplayed}>データを保存</button>
         {isSaved && <span style={{ marginLeft: "10px", color: "limegreen" }}>保存してやったぜ！</span>}
       </div>
-      <div style={{ display: "flex", alignItems: "center" }}>
+      <div style={{ display: "flex", alignItems: "center" , width: "30%" }}>
         <button onClick={handleCopyToClipboard} disabled={!isSaved}>テキストをコピー</button>
         {isCopied && <span style={{ marginLeft: "10px", color: "limegreen" }}>コピー完了！</span>}
       </div>
