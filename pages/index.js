@@ -147,26 +147,26 @@ const fetchSelectedDoc = async () => {
       </div>
 
       <div style={{ marginBottom: "20px" }}>
-        <select onChange={(e) => setSelectedField(e.target.value)} value={selectedField} style={{ width: "25%" }}>
-          <option value="">編集する酒クズを選びやがれ</option>
+        <select onChange={(e) => setSelectedField(e.target.value)} value={selectedField} style={{ width: "35%" }}>
+          <option value="">編集する酒クズ選択</option>
           {fieldList.map((field) => (
             <option key={field} value={field}>{field}</option>
           ))}
         </select>
-        <input type="number" placeholder="キャップ数" value={updateValue} onChange={(e) => setUpdateValue(e.target.value)} style={{ marginLeft: "10px" , width: "10%", marginTop: "10px" }} />
+        <input type="number" placeholder="数" value={updateValue} onChange={(e) => setUpdateValue(e.target.value)} style={{ marginLeft: "10px" , width: "10%", marginTop: "10px" }} />
         <input type="radio" name="operation" value="increase" checked={operation === "increase"} onChange={() => setOperation("increase")} style={{ marginLeft: "10px" }} /> 増
         <input type="radio" name="operation" value="decrease" checked={operation === "decrease"} onChange={() => setOperation("decrease")} style={{ marginLeft: "10px" }} /> 減
-        <button onClick={handleUpdateField} style={{ marginLeft: "10px" , width: "20%", marginTop: "10px" }}>プレビューに反映</button>
+        <button onClick={handleUpdateField} style={{ marginLeft: "10px" , width: "15%", marginTop: "10px" }}>反映</button>
       </div>
           
       <div style={{ marginBottom: "10px" }}>
-        <input type="text" placeholder="追加酒クズ名入力" value={newFieldName} onChange={(e) => setNewFieldName(e.target.value)} style={{ width: "25%" }} />
-        <input type="number" placeholder="キャップ数" value={newFieldValue} onChange={(e) => setNewFieldValue(e.target.value)} maxLength={4} style={{ marginLeft: "10px", width: "10%" }} />
+        <input type="text" placeholder="追加酒クズ名入力" value={newFieldName} onChange={(e) => setNewFieldName(e.target.value)} style={{ width: "35%" }} />
+        <input type="number" placeholder="数" value={newFieldValue} onChange={(e) => setNewFieldValue(e.target.value)} maxLength={4} style={{ marginLeft: "10px", width: "10%" }} />
         <button onClick={handleAddField} style={{ marginLeft: "10px" ,  width: "20%" }}>追加</button>
       </div>
       
       <div style={{ marginBottom: "10px" }}>
-        <select onChange={(e) => setSelectedFieldToDelete(e.target.value)} value={selectedFieldToDelete} style={{ width: "25%" }}>
+        <select onChange={(e) => setSelectedFieldToDelete(e.target.value)} value={selectedFieldToDelete} style={{ width: "35%" }}>
           <option value="">追放酒ザコ選択</option>
           {fieldList.map((field) => (
             <option key={field} value={field}>{field}</option>
