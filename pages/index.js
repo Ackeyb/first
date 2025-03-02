@@ -147,7 +147,7 @@ const fetchSelectedDoc = async () => {
       </div>
 
       <div style={{ marginBottom: "20px" }}>
-        <select onChange={(e) => setSelectedField(e.target.value)} value={selectedField} style={{ width: "50%" }}>
+        <select onChange={(e) => setSelectedField(e.target.value)} value={selectedField} style={{ width: "25%" }}>
           <option value="">編集する酒クズを選びやがれ</option>
           {fieldList.map((field) => (
             <option key={field} value={field}>{field}</option>
@@ -160,13 +160,13 @@ const fetchSelectedDoc = async () => {
       </div>
           
       <div style={{ marginBottom: "10px" }}>
-        <input type="text" placeholder="追加酒クズ名入力" value={newFieldName} onChange={(e) => setNewFieldName(e.target.value)} style={{ width: "50%" }} />
+        <input type="text" placeholder="追加酒クズ名入力" value={newFieldName} onChange={(e) => setNewFieldName(e.target.value)} style={{ width: "25%" }} />
         <input type="number" placeholder="キャップ数" value={newFieldValue} onChange={(e) => setNewFieldValue(e.target.value)} maxLength={4} style={{ marginLeft: "10px", width: "10%" }} />
         <button onClick={handleAddField} style={{ marginLeft: "10px" ,  width: "20%" }}>追加</button>
       </div>
       
       <div style={{ marginBottom: "10px" }}>
-        <select onChange={(e) => setSelectedFieldToDelete(e.target.value)} value={selectedFieldToDelete} style={{ width: "50%" }}>
+        <select onChange={(e) => setSelectedFieldToDelete(e.target.value)} value={selectedFieldToDelete} style={{ width: "25%" }}>
           <option value="">追放酒ザコ選択</option>
           {fieldList.map((field) => (
             <option key={field} value={field}>{field}</option>
