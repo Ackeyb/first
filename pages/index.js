@@ -133,7 +133,7 @@ const fetchSelectedDoc = async () => {
   };
 
   return (
-    <div style={{ padding: "20px", backgroundColor: "#121212", color: "#ffffff", minHeight: "100vh" }}>
+    <div style={{ padding: "14px", backgroundColor: "#121212", color: "#ffffff", minHeight: "100vh" }}>
       <h1 style={{ color: "red", borderBottom: "2px solid red", paddingBottom: "10px" }}>Cap Management for ReRyss</h1>
       
       <div style={{ marginBottom: "20px" }}>
@@ -177,11 +177,11 @@ const fetchSelectedDoc = async () => {
 
       <textarea value={previewText} readOnly rows={isMobile ? 5 : 10} style={{ width: "100%", marginTop: "20px", marginBottom: "20px" }}></textarea>
       <div style={{ display: "flex", alignItems: "center", marginBottom: "20px"  }}>
-        <button onClick={handleSaveData} disabled={!isDisplayed} style={{ width: "30%" }}>データを保存</button>
+        <button onClick={handleSaveData} disabled={!isDisplayed} style={{ width: "40%" }}>データを保存</button>
         {isSaved && <span style={{ marginLeft: "10px", color: "limegreen" }}>保存してやったぜ！</span>}
       </div>
       <div style={{ display: "flex", alignItems: "center"}}>
-        <button onClick={handleCopyToClipboard} disabled={!isSaved} style={{ width: "30%" }}>テキストをコピー</button>
+        <button onClick={handleCopyToClipboard} disabled={!isSaved} style={{ width: "40%" }}>テキストをコピー</button>
         {isCopied && <span style={{ marginLeft: "10px", color: "limegreen" }}>コピー完了！</span>}
       </div>
     </div>
