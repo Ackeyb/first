@@ -104,11 +104,11 @@ const fetchSelectedDoc = async () => {
         .map(([key, value]) => `${key}: ${value}`)
         .join("\n")
     );
-    setPreviewHistory(
-      Object.entries(updatedData)
-        .map(([key, value]) => `${key}: ${value}`)
-        .join("\n")
-    );
+//    setPreviewHistory(
+//      Object.entries(updatedData)
+//        .map(([key, value]) => `${key}: ${value}`)
+//        .join("\n")
+//    );
 
   };
 
@@ -148,6 +148,7 @@ const fetchSelectedDoc = async () => {
           paddingBottom: "10px" , 
           width: "80%" , 
           whiteSpace: "nowrap" , 
+          textAlign: "center" 
         }}>
           Cap Management for ReRyss
         </h1>
