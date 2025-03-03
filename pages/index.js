@@ -7,6 +7,7 @@ export default function Home() {
   const [docList, setDocList] = useState([]);
   const [selectedDoc, setSelectedDoc] = useState("");
   const [previewText, setPreviewText] = useState("");
+  const [previewHistory, setPreviewHistory] = useState("");
   const [fieldList, setFieldList] = useState([]);
   const [selectedField, setSelectedField] = useState("");
   const [updateValue, setUpdateValue] = useState("");
@@ -103,6 +104,12 @@ const fetchSelectedDoc = async () => {
         .map(([key, value]) => `${key}: ${value}`)
         .join("\n")
     );
+    setPreviewHistory(
+      Object.entries(updatedData)
+        .map(([key, value]) => `${key}: ${value}`)
+        .join("\n")
+    );
+
   };
 
   const handleDeleteField = () => {
@@ -133,8 +140,17 @@ const fetchSelectedDoc = async () => {
   };
 
   return (
-    <div style={{ padding: "20px", backgroundColor: "#121212", color: "#ffffff", minHeight: "100vh" }}>
-      <h1 style={{ color: "red", borderBottom: "2px solid red", paddingBottom: "10px" , whiteSpace: "nowrap" , overflow: "hidden" , fontSize: "1.7rem" , width: "100%" }}>Cap Management for ReRyss</h1>
+    <div>
+      <div style={{ display: "flex", justifyContent: "center", width: "100%" }}>
+        <h1 style={{ 
+          color: "red", 
+          borderBottom: "2px solid red", 
+          paddingBottom: "10px" , 
+          whiteSpace: "nowrap" , 
+        }}>
+          Cap Management for ReRyss
+        </h1>
+      </div>
       
       <div style={{ marginBottom: "20px" }}>
         <select onChange={(e) => setSelectedDoc(e.target.value)} value={selectedDoc} style={{ marginTop: "20px" , width: "60%" }}>
@@ -175,7 +191,9 @@ const fetchSelectedDoc = async () => {
         <button onClick={handleDeleteField} style={{ marginLeft: "10px" , width: "15%" }}>追放</button>
       </div>
 
-      <textarea value={previewText} readOnly rows={isMobile ? 5 : 10} style={{ width: "100%", marginTop: "20px", marginBottom: "20px" }}></textarea>
+      <textarea value={previewText} readOnly rows={isMobile ? 5 : 10} style={{ width: "45%", marginTop: "20px" , marginBottom: "20px" }}></textarea>
+      <textarea value={previewHistory} readOnly rows={isMobile ? 5 : 10} style={{ width: "45%", marginLeft: "20px" , marginBottom: "20px" }}></textarea>
+
       <div style={{ display: "flex", alignItems: "center", marginBottom: "20px"  }}>
         <button onClick={handleSaveData} disabled={!isDisplayed} style={{ width: "40%" }}>データを保存</button>
         {isSaved && <span style={{ marginLeft: "10px", color: "limegreen" }}>保存してやったぜ！</span>}
