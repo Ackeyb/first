@@ -141,11 +141,12 @@ const fetchSelectedDoc = async () => {
 
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "center", width: "80%" }}>
+      <div style={{ display: "flex", justifyContent: "center", width: "100%" }}>
         <h1 style={{ 
           color: "red", 
           borderBottom: "2px solid red", 
           paddingBottom: "10px" , 
+          width: "80%" , 
           whiteSpace: "nowrap" , 
         }}>
           Cap Management for ReRyss
