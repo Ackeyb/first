@@ -85,6 +85,10 @@ const fetchSelectedDoc = async () => {
         .map(([key, value]) => `${key}: ${value}`)
         .join("\n")
     );
+
+    const newHistoryEntry = `${selectedField}: ${oldValue} → ${newValue}`;
+    setPreviewHistory((prevHistory) => prevHistory + (prevHistory ? "\n" : "") + newHistoryEntry);
+
   };
   const handleCopyToClipboard = () => {
     if (!isSaved) return;
@@ -104,11 +108,6 @@ const fetchSelectedDoc = async () => {
         .map(([key, value]) => `${key}: ${value}`)
         .join("\n")
     );
-//    setPreviewHistory(
-//      Object.entries(updatedData)
-//        .map(([key, value]) => `${key}: ${value}`)
-//        .join("\n")
-//    );
 
   };
 
@@ -146,7 +145,7 @@ const fetchSelectedDoc = async () => {
           color: "red", 
           borderBottom: "2px solid red", 
           paddingBottom: "10px" , 
-          width: "80%" , 
+          fontSize: "1.5rem" , 
           whiteSpace: "nowrap" , 
           textAlign: "center" 
         }}>
