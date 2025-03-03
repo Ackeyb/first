@@ -141,7 +141,7 @@ const fetchSelectedDoc = async () => {
 
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "center", width: "100%" }}>
+      <div style={{ display: "flex", justifyContent: "center", width: "80%" }}>
         <h1 style={{ 
           color: "red", 
           borderBottom: "2px solid red", 
