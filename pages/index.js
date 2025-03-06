@@ -52,13 +52,23 @@ const fetchSelectedDoc = async () => {
       const data = docSnap.data();
       console.log("Firestore のデータ:", data);
 
-      setTempData(data); // tempDataにデータをセット
-      setFieldList(Object.keys(data));
-      const formattedText = Object.entries(data)
-        .map(([key, value]) => `${key}: ${value}`)
-        .join("\n");
+      // 🔥 `_order` に従って並び替え
+      const orderedKeys = data._order || Object.keys(data);
+      const sortedData = Object.fromEntries(
+        orderedKeys.filter((key) => key !== "_order").map((key) => [key, data[key]])
+      );
 
-      setPreviewText(formattedText);
+      setTempData(sortedData);
+      setFieldList(orderedKeys.filter((key) => key !== "_order"));
+
+      // 🔥 並び順を維持した状態でプレビュー表示
+      setPreviewText(
+        orderedKeys
+          .filter((key) => key !== "_order")
+          .map((key) => `${key}: ${data[key]}`)
+          .join("\n")
+      );
+
       setIsDisplayed(true);
     } else {
       console.warn("データが見つかりません:", selectedDoc);
@@ -90,6 +100,7 @@ const fetchSelectedDoc = async () => {
     setPreviewHistory((prevHistory) => prevHistory + (prevHistory ? "\n" : "") + newHistoryEntry);
 
   };
+
   const handleCopyToClipboard = () => {
     if (!isSaved) return;
     navigator.clipboard.writeText(previewText).then(() => {
@@ -120,89 +131,119 @@ const fetchSelectedDoc = async () => {
     setPreviewText(updatedText);
   };
 
-  const handleSaveData = async () => {
-    if (!selectedDoc || !isDisplayed) return;
-    let baseTimestamp = new Date().toISOString().split("T")[0]; // YYYY-MM-DD 形式
-    let newDocName = baseTimestamp;
-    let counter = 1;
-    while (docList.includes(newDocName)) {
-      newDocName = `${baseTimestamp}-${counter}`;
-      counter++;
-    }
-    const newDocRef = doc(db, "capstock", newDocName);
-    await setDoc(newDocRef, { ...previewText.split("\n").reduce((acc, line) => {
-      const [key, value] = line.split(": ");
-      return { ...acc, [key]: Number(value) };
-    }, {}) });
-    setIsSaved(true);
-    setDocList([newDocName, ...docList].slice(0, 20)); // 20件まで保持
-  };
+const handleSaveData = async () => {
+  if (!selectedDoc || !isDisplayed) return;
 
-  return (
-    <div>
-      <div style={{ display: "flex", justifyContent: "center", width: "100%" }}>
-        <h1 style={{ 
-          color: "red", 
-          borderBottom: "2px solid red", 
-          paddingBottom: "10px" , 
-          fontSize: "1.5rem" , 
-          whiteSpace: "nowrap" , 
-          textAlign: "center" 
-        }}>
-          Cap Management for ReRyss
-        </h1>
-      </div>
-      
-      <div style={{ marginBottom: "20px" }}>
-        <select onChange={(e) => setSelectedDoc(e.target.value)} value={selectedDoc} style={{ marginTop: "20px" , width: "60%" }}>
-          <option value="">-- データを選択しやがれ --</option>
-          {docList.map((docName) => (
-            <option key={docName} value={docName}>{docName}</option>
-          ))}
-        </select>
-        <button onClick={fetchSelectedDoc} disabled={!selectedDoc} style={{ marginLeft: "10px" , width: "20%" }}>表示する</button>
-      </div>
+  let baseTimestamp = new Date().toISOString().split("T")[0]; // YYYY-MM-DD 形式
+  let newDocName = baseTimestamp;
+  let counter = 1;
+  while (docList.includes(newDocName)) {
+    newDocName = `${baseTimestamp}-${counter}`;
+    counter++;
+  }
 
-      <div style={{ marginBottom: "20px" }}>
-        <select onChange={(e) => setSelectedField(e.target.value)} value={selectedField} style={{ width: "40%" }}>
-          <option value="">編集する酒クズ選択</option>
-          {fieldList.map((field) => (
-            <option key={field} value={field}>{field}</option>
-          ))}
-        </select>
-        <input type="number" placeholder="数" value={updateValue} onChange={(e) => setUpdateValue(e.target.value)} style={{ marginLeft: "10px" , width: "10%", marginTop: "10px" }} />
-        <input type="radio" name="operation" value="increase" checked={operation === "increase"} onChange={() => setOperation("increase")} style={{ marginLeft: "10px" }} /> 増
-        <input type="radio" name="operation" value="decrease" checked={operation === "decrease"} onChange={() => setOperation("decrease")} style={{ marginLeft: "10px" }} /> 減
-        <button onClick={handleUpdateField} style={{ marginLeft: "10px" , width: "15%", marginTop: "10px" }}>反映</button>
-      </div>
-          
-      <div style={{ marginBottom: "10px" }}>
-        <input type="text" placeholder="追加酒クズ名入力" value={newFieldName} onChange={(e) => setNewFieldName(e.target.value)} style={{ width: "40%" }} />
-        <input type="number" placeholder="数" value={newFieldValue} onChange={(e) => setNewFieldValue(e.target.value)} maxLength={4} style={{ marginLeft: "10px", width: "10%" }} />
-        <button onClick={handleAddField} style={{ marginLeft: "10px" ,  width: "15%" }}>追加</button>
-      </div>
-      
-      <div style={{ marginBottom: "10px" }}>
-        <select onChange={(e) => setSelectedFieldToDelete(e.target.value)} value={selectedFieldToDelete} style={{ width: "40%" }}>
-          <option value="">追放酒ザコ選択</option>
-          {fieldList.map((field) => (
-            <option key={field} value={field}>{field}</option>
-          ))}
-        </select>
-        <button onClick={handleDeleteField} style={{ marginLeft: "10px" , width: "15%" }}>追放</button>
-      </div>
+  // ✅ Firestore に保存するデータを構築
+  let saveData = { ...tempData };
 
-      <textarea value={previewText} readOnly rows={isMobile ? 5 : 10} style={{ width: "45%", marginTop: "20px" , marginBottom: "20px" }}></textarea>
-      <textarea value={previewHistory} readOnly rows={isMobile ? 5 : 10} style={{ width: "45%", marginLeft: "20px" , marginBottom: "20px" }}></textarea>
+  // 🔄 `_order` を現在のキー一覧で洗い替え
+  saveData["_order"] = Object.keys(saveData).filter(key => key !== "_order");
 
-      <div style={{ display: "flex", alignItems: "center", marginBottom: "20px"  }}>
-        <button onClick={handleSaveData} disabled={!isDisplayed} style={{ width: "40%" }}>データを保存</button>
-        {isSaved && <span style={{ marginLeft: "10px", color: "limegreen" }}>保存してやったぜ！</span>}
+  // 🔥 Firestore に保存
+  const newDocRef = doc(db, "capstock", newDocName);
+  await setDoc(newDocRef, saveData);
+
+  // ✅ ステートを更新
+  setIsSaved(true);
+  setDocList([newDocName, ...docList].slice(0, 20)); // 20件まで保持
+};
+
+return (
+  <div>
+    {/* タイトル */}
+    <div style={{ display: "flex", justifyContent: "center", width: "100%" }}>
+      <h1 style={{ 
+        color: "red", 
+        borderBottom: "2px solid red", 
+        paddingBottom: "5px",  // アンダーラインとテキストの間を縮めた
+        fontSize: "1.5rem", 
+        whiteSpace: "nowrap", 
+        textAlign: "center",
+        marginBottom: "20px"  // データ選択との間を20px確保
+      }}>
+        Cap Management for ReRyss
+      </h1>
+    </div>
+
+    {/* データを選択 */}
+    <div style={{ marginBottom: "20px" }}>
+      <label style={{ display: "block", marginBottom: "5px" }}>データを選択</label>
+      <select onChange={(e) => setSelectedDoc(e.target.value)} value={selectedDoc} style={{ width: "60%" }}>
+        <option value="">-- データを選択しやがれ --</option>
+        {docList.map((docName) => (
+          <option key={docName} value={docName}>{docName}</option>
+        ))}
+      </select>
+      <button onClick={fetchSelectedDoc} disabled={!selectedDoc} style={{ marginLeft: "10px", width: "20%" }}>表示する</button>
+    </div>
+
+    {/* 編集する酒クズ */}
+    <div style={{ marginBottom: "20px" }}>
+      <label style={{ display: "block", marginBottom: "5px" }}>編集する酒クズ</label>
+      <select onChange={(e) => setSelectedField(e.target.value)} value={selectedField} style={{ width: "40%" }}>
+        <option value="">酒クズ選択</option>
+        {fieldList.map((field) => (
+          <option key={field} value={field}>{field}</option>
+        ))}
+      </select>
+      <input type="number" placeholder="数" value={updateValue} onChange={(e) => setUpdateValue(e.target.value)} style={{ marginLeft: "10px", width: "10%" }} />
+      <input type="radio" name="operation" value="increase" checked={operation === "increase"} onChange={() => setOperation("increase")} style={{ marginLeft: "10px" }} /> 増
+      <input type="radio" name="operation" value="decrease" checked={operation === "decrease"} onChange={() => setOperation("decrease")} style={{ marginLeft: "10px" }} /> 減
+      <button onClick={handleUpdateField} style={{ marginLeft: "10px", width: "15%" }}>反映</button>
+    </div>
+
+    {/* 追加する酒クズ */}
+    <div style={{ marginBottom: "20px" }}>
+      <label style={{ display: "block", marginBottom: "5px" }}>追加する酒クズ</label>
+      <input type="text" placeholder="酒クズ名入力" value={newFieldName} onChange={(e) => setNewFieldName(e.target.value)} style={{ width: "40%" }} />
+      <input type="number" placeholder="数" value={newFieldValue} onChange={(e) => setNewFieldValue(e.target.value)} maxLength={4} style={{ marginLeft: "10px", width: "10%" }} />
+      <button onClick={handleAddField} style={{ marginLeft: "10px", width: "15%" }}>追加</button>
+    </div>
+
+    {/* 追放する酒ザコ */}
+    <div style={{ marginBottom: "20px" }}>
+      <label style={{ display: "block", marginBottom: "5px" }}>追放する酒ザコ</label>
+      <select onChange={(e) => setSelectedFieldToDelete(e.target.value)} value={selectedFieldToDelete} style={{ width: "40%" }}>
+        <option value="">酒ザコ選択</option>
+        {fieldList.map((field) => (
+          <option key={field} value={field}>{field}</option>
+        ))}
+      </select>
+      <button onClick={handleDeleteField} style={{ marginLeft: "10px", width: "15%" }}>追放</button>
+    </div>
+
+    {/* プレビュー & 履歴 */}
+    <div style={{ display: "flex", justifyContent: "space-between", gap: "20px", marginBottom: "20px" }}>
+      <div style={{ width: "45%" }}>
+        <label style={{ display: "block", marginBottom: "5px" }}>プレビュー</label>
+        <textarea value={previewText} readOnly rows={isMobile ? 5 : 10} style={{ width: "100%", marginTop: "10px" }}></textarea>
       </div>
-      <div style={{ display: "flex", alignItems: "center"}}>
-        <button onClick={handleCopyToClipboard} disabled={!isSaved} style={{ width: "40%" }}>テキストをコピー</button>
-        {isCopied && <span style={{ marginLeft: "10px", color: "limegreen" }}>コピー完了！</span>}
+      <div style={{ width: "45%" }}>
+        <label style={{ display: "block", marginBottom: "5px" }}>履歴</label>
+        <textarea value={previewHistory} readOnly rows={isMobile ? 5 : 10} style={{ width: "100%", marginTop: "10px" }}></textarea>
       </div>
     </div>
-  );
+
+    {/* 保存ボタン */}
+    <div style={{ display: "flex", alignItems: "center", marginBottom: "20px" }}>
+      <button onClick={handleSaveData} disabled={!isDisplayed} style={{ width: "40%" }}>データを保存</button>
+      {isSaved && <span style={{ marginLeft: "10px", color: "limegreen" }}>保存してやったぜ！</span>}
+    </div>
+
+    {/* コピー ボタン */}
+    <div style={{ display: "flex", alignItems: "center" }}>
+      <button onClick={handleCopyToClipboard} disabled={!isSaved} style={{ width: "40%" }}>テキストをコピー</button>
+      {isCopied && <span style={{ marginLeft: "10px", color: "limegreen" }}>コピー完了！</span>}
+    </div>
+  </div>
+);
 }
