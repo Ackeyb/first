@@ -222,12 +222,12 @@ return (
     </div>
 
     {/* プレビュー & 履歴 */}
-    <div style={{ display: "flex", justifyContent: "space-between", gap: "5px", marginBottom: "20px" }}>
-      <div style={{ width: "45%" }}>
+    <div style={{ display: "flex", gap: "5px", justifyContent: "center", marginBottom: "20px" }}>
+      <div style={{ width: "48%" }}>
         <label style={{ display: "block", marginBottom: "5px" }}>プレビュー</label>
         <textarea value={previewText} readOnly rows={isMobile ? 10 : 15} style={{ width: "100%", marginTop: "5px" }}></textarea>
       </div>
-      <div style={{ width: "45%" }}>
+      <div style={{ width: "48%" }}>
         <label style={{ display: "block", marginBottom: "5px" }}>履歴</label>
         <textarea value={previewHistory} readOnly rows={isMobile ? 10 : 15} style={{ width: "100%", marginTop: "5px" }}></textarea>
       </div>
