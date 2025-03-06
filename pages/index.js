@@ -164,11 +164,11 @@ return (
       <h1 style={{ 
         color: "red", 
         borderBottom: "2px solid red", 
-        paddingBottom: "5px",  // アンダーラインとテキストの間を縮めた
+        paddingBottom: "5px",  
         fontSize: "1.5rem", 
         whiteSpace: "nowrap", 
         textAlign: "center",
-        marginBottom: "20px"  // データ選択との間を20px確保
+        marginBottom: "20px"  
       }}>
         Cap Management for ReRyss
       </h1>
@@ -190,7 +190,7 @@ return (
     <div style={{ marginBottom: "20px" }}>
       <label style={{ display: "block", marginBottom: "5px" }}>編集する酒クズ</label>
       <select onChange={(e) => setSelectedField(e.target.value)} value={selectedField} style={{ width: "40%" }}>
-        <option value="">酒クズ選択</option>
+        <option value="">編集する酒クズ選択</option>
         {fieldList.map((field) => (
           <option key={field} value={field}>{field}</option>
         ))}
@@ -204,7 +204,7 @@ return (
     {/* 追加する酒クズ */}
     <div style={{ marginBottom: "20px" }}>
       <label style={{ display: "block", marginBottom: "5px" }}>追加する酒クズ</label>
-      <input type="text" placeholder="酒クズ名入力" value={newFieldName} onChange={(e) => setNewFieldName(e.target.value)} style={{ width: "40%" }} />
+      <input type="text" placeholder="追加酒クズ名入力" value={newFieldName} onChange={(e) => setNewFieldName(e.target.value)} style={{ width: "40%" }} />
       <input type="number" placeholder="数" value={newFieldValue} onChange={(e) => setNewFieldValue(e.target.value)} maxLength={4} style={{ marginLeft: "10px", width: "10%" }} />
       <button onClick={handleAddField} style={{ marginLeft: "10px", width: "15%" }}>追加</button>
     </div>
@@ -213,7 +213,7 @@ return (
     <div style={{ marginBottom: "20px" }}>
       <label style={{ display: "block", marginBottom: "5px" }}>追放する酒ザコ</label>
       <select onChange={(e) => setSelectedFieldToDelete(e.target.value)} value={selectedFieldToDelete} style={{ width: "40%" }}>
-        <option value="">酒ザコ選択</option>
+        <option value="">追放酒ザコ選択</option>
         {fieldList.map((field) => (
           <option key={field} value={field}>{field}</option>
         ))}
@@ -222,14 +222,14 @@ return (
     </div>
 
     {/* プレビュー & 履歴 */}
-    <div style={{ display: "flex", justifyContent: "space-between", gap: "20px", marginBottom: "20px" }}>
+    <div style={{ display: "flex", justifyContent: "space-between", gap: "5px", marginBottom: "20px" }}>
       <div style={{ width: "45%" }}>
         <label style={{ display: "block", marginBottom: "5px" }}>プレビュー</label>
-        <textarea value={previewText} readOnly rows={isMobile ? 5 : 10} style={{ width: "100%", marginTop: "10px" }}></textarea>
+        <textarea value={previewText} readOnly rows={isMobile ? 10 : 15} style={{ width: "100%", marginTop: "5px" }}></textarea>
       </div>
       <div style={{ width: "45%" }}>
         <label style={{ display: "block", marginBottom: "5px" }}>履歴</label>
-        <textarea value={previewHistory} readOnly rows={isMobile ? 5 : 10} style={{ width: "100%", marginTop: "10px" }}></textarea>
+        <textarea value={previewHistory} readOnly rows={isMobile ? 10 : 15} style={{ width: "100%", marginTop: "5px" }}></textarea>
       </div>
     </div>
 
