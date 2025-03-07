@@ -20,6 +20,8 @@ export default function Home() {
   const [isCopied, setIsCopied] = useState(false);
   const isMobile = useMediaQuery({ maxWidth: 768 });
   const [tempData, setTempData] = useState({});
+　const [isExtraFieldsVisible, setIsExtraFieldsVisible] = useState(false);
+
 
 
   useEffect(() => {
@@ -96,10 +98,10 @@ const fetchSelectedDoc = async () => {
         .join("\n")
     );
 
-    const newHistoryEntry = `${selectedField}: ${oldValue} → ${newValue}`;
-    setPreviewHistory((prevHistory) => prevHistory + (prevHistory ? "\n" : "") + newHistoryEntry);
-
-  };
+  const changeSymbol = changeAmount >= 0 ? `+${changeAmount}` : `${changeAmount}`;
+  const newHistoryEntry = `${selectedField}: ${oldValue} → ${newValue} (${changeSymbol})`;
+  setPreviewHistory((prevHistory) => prevHistory + (prevHistory ? "\n" : "") + newHistoryEntry);
+};
 
   const handleCopyToClipboard = () => {
     if (!isSaved) return;
@@ -109,27 +111,47 @@ const fetchSelectedDoc = async () => {
     });
   };
 
-  const handleAddField = () => {
-    if (!newFieldName || newFieldValue === "") return;
-    const updatedData = { ...tempData, [newFieldName]: Number(newFieldValue) };
-    setTempData(updatedData);
-    setFieldList(Object.keys(updatedData));
-    setPreviewText(
-      Object.entries(updatedData)
-        .map(([key, value]) => `${key}: ${value}`)
-        .join("\n")
-    );
+const handleAddField = () => {
+  if (!newFieldName || newFieldValue === "") return;
+  const numericValue = Number(newFieldValue);
+  const updatedData = { ...tempData, [newFieldName]: numericValue };
 
-  };
+  setTempData(updatedData);
+  setFieldList(Object.keys(updatedData));
+  setPreviewText(
+    Object.entries(updatedData)
+      .map(([key, value]) => `${key}: ${value}`)
+      .join("\n")
+  );
 
-  const handleDeleteField = () => {
-    if (!selectedFieldToDelete) return;
-    const updatedText = previewText
-      .split("\n")
-      .filter((line) => !line.startsWith(`${selectedFieldToDelete}:`))
-      .join("\n");
-    setPreviewText(updatedText);
-  };
+  // 履歴に追加
+  const newHistoryEntry = `追加: ${newFieldName} (${numericValue})`;
+  setPreviewHistory((prevHistory) => prevHistory + (prevHistory ? "\n" : "") + newHistoryEntry);
+};
+
+const handleDeleteField = () => {
+  if (!selectedFieldToDelete) return;
+
+  // 削除する値を取得
+  const oldValue = tempData[selectedFieldToDelete];
+
+  // データを更新
+  const updatedData = { ...tempData };
+  delete updatedData[selectedFieldToDelete];
+
+  setTempData(updatedData);
+  setFieldList(Object.keys(updatedData));
+  setPreviewText(
+    Object.entries(updatedData)
+      .map(([key, value]) => `${key}: ${value}`)
+      .join("\n")
+  );
+
+  // 履歴に追加
+  const newHistoryEntry = `追放: ${selectedFieldToDelete} (${oldValue})`;
+  setPreviewHistory((prevHistory) => prevHistory + (prevHistory ? "\n" : "") + newHistoryEntry);
+};
+
 
 const handleSaveData = async () => {
   if (!selectedDoc || !isDisplayed) return;
@@ -190,7 +212,7 @@ return (
     <div style={{ marginBottom: "20px" }}>
       <label style={{ display: "block", marginBottom: "5px" }}>編集する酒クズ</label>
       <select onChange={(e) => setSelectedField(e.target.value)} value={selectedField} style={{ width: "40%" }}>
-        <option value="">編集する酒クズ選択</option>
+        <option value="">酒クズ選択</option>
         {fieldList.map((field) => (
           <option key={field} value={field}>{field}</option>
         ))}
@@ -201,25 +223,75 @@ return (
       <button onClick={handleUpdateField} style={{ marginLeft: "10px", width: "15%" }}>反映</button>
     </div>
 
+{/* 追加・削除を表示/非表示にするボタン */}
+<button 
+  onClick={() => setIsExtraFieldsVisible(!isExtraFieldsVisible)} 
+  style={{
+    marginBottom: "10px",
+    padding: "5px 10px",
+    fontSize: "14px",
+    cursor: "pointer",
+    width: "100%",
+    textAlign: "center",
+    border: "1px solid #ccc",
+    borderRadius: "5px"
+  }}
+>
+  {isExtraFieldsVisible ? "▼ 追加・追放を隠す" : "▶ 追加・追放を表示"}
+</button>
+
+{/* 追加・削除のフォーム（表示時のみ） */}
+{isExtraFieldsVisible && (
+  <div style={{ marginBottom: "20px", padding: "15px", border: "1px solid #ccc", borderRadius: "5px" }}>
+    
     {/* 追加する酒クズ */}
-    <div style={{ marginBottom: "20px" }}>
-      <label style={{ display: "block", marginBottom: "5px" }}>追加する酒クズ</label>
-      <input type="text" placeholder="追加酒クズ名入力" value={newFieldName} onChange={(e) => setNewFieldName(e.target.value)} style={{ width: "40%" }} />
-      <input type="number" placeholder="数" value={newFieldValue} onChange={(e) => setNewFieldValue(e.target.value)} maxLength={4} style={{ marginLeft: "10px", width: "10%" }} />
-      <button onClick={handleAddField} style={{ marginLeft: "10px", width: "15%" }}>追加</button>
+    <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "10px" }}>
+      <label style={{ width: "120px", textAlign: "right" }}>追加する酒クズ</label>
+      <input 
+        type="text" 
+        placeholder="酒クズ名" 
+        value={newFieldName} 
+        onChange={(e) => setNewFieldName(e.target.value)} 
+        style={{ flex: "1", padding: "5px", border: "1px solid #ccc", borderRadius: "5px" }} 
+      />
+      <input 
+        type="number" 
+        placeholder="数" 
+        value={newFieldValue} 
+        onChange={(e) => setNewFieldValue(e.target.value)} 
+        style={{ width: "80px", padding: "5px", border: "1px solid #ccc", borderRadius: "5px" }} 
+      />
+      <button 
+        onClick={handleAddField} 
+        style={{ padding: "5px 10px", cursor: "pointer", borderRadius: "5px", border: "1px solid #ccc" }}
+      >
+        追加
+      </button>
     </div>
 
     {/* 追放する酒ザコ */}
-    <div style={{ marginBottom: "20px" }}>
-      <label style={{ display: "block", marginBottom: "5px" }}>追放する酒ザコ</label>
-      <select onChange={(e) => setSelectedFieldToDelete(e.target.value)} value={selectedFieldToDelete} style={{ width: "40%" }}>
+    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+      <label style={{ width: "120px", textAlign: "right" }}>追放する酒ザコ</label>
+      <select 
+        onChange={(e) => setSelectedFieldToDelete(e.target.value)} 
+        value={selectedFieldToDelete} 
+        style={{ flex: "1", padding: "5px", border: "1px solid #ccc", borderRadius: "5px" }}
+      >
         <option value="">追放酒ザコ選択</option>
         {fieldList.map((field) => (
           <option key={field} value={field}>{field}</option>
         ))}
       </select>
-      <button onClick={handleDeleteField} style={{ marginLeft: "10px", width: "15%" }}>追放</button>
+      <button 
+        onClick={handleDeleteField} 
+        style={{ padding: "5px 10px", cursor: "pointer", borderRadius: "5px", border: "1px solid #ccc" }}
+      >
+        追放
+      </button>
     </div>
+
+  </div>
+)}
 
     {/* プレビュー & 履歴 */}
     <div style={{ display: "flex", gap: "5px", justifyContent: "center", marginBottom: "20px" }}>
