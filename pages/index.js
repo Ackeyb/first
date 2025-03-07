@@ -228,7 +228,7 @@ return (
   onClick={() => setIsExtraFieldsVisible(!isExtraFieldsVisible)} 
   style={{
     marginBottom: "10px",
-    padding: "5px 10px",
+    padding: "8px",
     fontSize: "14px",
     cursor: "pointer",
     width: "100%",
@@ -237,57 +237,61 @@ return (
     borderRadius: "5px"
   }}
 >
-  {isExtraFieldsVisible ? "▼ 追加・追放を隠す" : "▶ 追加・追放を表示"}
+  {isExtraFieldsVisible ? "▼ 追加・削除を隠す" : "▶ 追加・削除を表示"}
 </button>
 
 {/* 追加・削除のフォーム（表示時のみ） */}
 {isExtraFieldsVisible && (
-  <div style={{ marginBottom: "20px", padding: "15px", border: "1px solid #ccc", borderRadius: "5px" }}>
+  <div style={{ marginBottom: "20px", padding: "10px", border: "1px solid #ccc", borderRadius: "5px" }}>
     
     {/* 追加する酒クズ */}
-    <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "10px" }}>
-      <label style={{ width: "120px", textAlign: "right" }}>追加する酒クズ</label>
-      <input 
-        type="text" 
-        placeholder="酒クズ名" 
-        value={newFieldName} 
-        onChange={(e) => setNewFieldName(e.target.value)} 
-        style={{ flex: "1", padding: "5px", border: "1px solid #ccc", borderRadius: "5px" }} 
-      />
-      <input 
-        type="number" 
-        placeholder="数" 
-        value={newFieldValue} 
-        onChange={(e) => setNewFieldValue(e.target.value)} 
-        style={{ width: "80px", padding: "5px", border: "1px solid #ccc", borderRadius: "5px" }} 
-      />
-      <button 
-        onClick={handleAddField} 
-        style={{ padding: "5px 10px", cursor: "pointer", borderRadius: "5px", border: "1px solid #ccc" }}
-      >
-        追加
-      </button>
+    <div style={{ marginBottom: "15px" }}>
+      <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>追加する酒クズ</label>
+      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+        <input 
+          type="text" 
+          placeholder="酒クズ名" 
+          value={newFieldName} 
+          onChange={(e) => setNewFieldName(e.target.value)} 
+          style={{ flex: "1", padding: "8px", border: "1px solid #ccc", borderRadius: "5px" }} 
+        />
+        <input 
+          type="number" 
+          placeholder="数" 
+          value={newFieldValue} 
+          onChange={(e) => setNewFieldValue(e.target.value)} 
+          style={{ width: "80px", padding: "8px", border: "1px solid #ccc", borderRadius: "5px" }} 
+        />
+        <button 
+          onClick={handleAddField} 
+          style={{ padding: "8px", cursor: "pointer", borderRadius: "5px", border: "1px solid #ccc" }}
+        >
+          追加
+        </button>
+      </div>
     </div>
 
     {/* 追放する酒ザコ */}
-    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-      <label style={{ width: "120px", textAlign: "right" }}>追放する酒ザコ</label>
-      <select 
-        onChange={(e) => setSelectedFieldToDelete(e.target.value)} 
-        value={selectedFieldToDelete} 
-        style={{ flex: "1", padding: "5px", border: "1px solid #ccc", borderRadius: "5px" }}
-      >
-        <option value="">追放酒ザコ選択</option>
-        {fieldList.map((field) => (
-          <option key={field} value={field}>{field}</option>
-        ))}
-      </select>
-      <button 
-        onClick={handleDeleteField} 
-        style={{ padding: "5px 10px", cursor: "pointer", borderRadius: "5px", border: "1px solid #ccc" }}
-      >
-        追放
-      </button>
+    <div>
+      <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>追放する酒ザコ</label>
+      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+        <select 
+          onChange={(e) => setSelectedFieldToDelete(e.target.value)} 
+          value={selectedFieldToDelete} 
+          style={{ flex: "1", padding: "8px", border: "1px solid #ccc", borderRadius: "5px" }}
+        >
+          <option value="">追放酒ザコ選択</option>
+          {fieldList.map((field) => (
+            <option key={field} value={field}>{field}</option>
+          ))}
+        </select>
+        <button 
+          onClick={handleDeleteField} 
+          style={{ padding: "8px", cursor: "pointer", borderRadius: "5px", border: "1px solid #ccc" }}
+        >
+          追放
+        </button>
+      </div>
     </div>
 
   </div>
