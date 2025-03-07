@@ -98,7 +98,7 @@ const fetchSelectedDoc = async () => {
         .join("\n")
     );
 
-  const changeSymbol = changeAmount >= 0 ? `+${changeAmount}` : `${changeAmount}`;
+  const changeSymbol = newValue - oldValue >= 0 ?  `+${changeAmount}` : `-${changeAmount}` ;
   const newHistoryEntry = `${selectedField}: ${oldValue} → ${newValue} (${changeSymbol})`;
   setPreviewHistory((prevHistory) => prevHistory + (prevHistory ? "\n" : "") + newHistoryEntry);
 };
@@ -156,11 +156,13 @@ const handleDeleteField = () => {
 const handleSaveData = async () => {
   if (!selectedDoc || !isDisplayed) return;
 
-  let baseTimestamp = new Date().toISOString().split("T")[0]; // YYYY-MM-DD 形式
-  let newDocName = baseTimestamp;
+  let baseTimestamp = new Date();
+  baseTimestamp.setHours(baseTimestamp.getHours() + 9);
+  let jstTimestamp = baseTimestamp.toISOString().split("T")[0]; // YYYY-MM-DD 形式
+  let newDocName = jstTimestamp;
   let counter = 1;
   while (docList.includes(newDocName)) {
-    newDocName = `${baseTimestamp}-${counter}`;
+    newDocName = `${jstTimestamp}-${counter}`;
     counter++;
   }
 
@@ -248,7 +250,7 @@ return (
     
     {/* 追加する酒クズ */}
     <div style={{ marginBottom: "15px" }}>
-      <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>追加する酒クズ</label>
+      <label style={{ display: "block", marginBottom: "5px" }}>追加する酒クズ</label>
       <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
         <input 
           type="text" 
@@ -275,7 +277,7 @@ return (
 
     {/* 追放する酒ザコ */}
     <div>
-      <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>追放する酒ザコ</label>
+      <label style={{ display: "block", marginBottom: "5px" }}>追放する酒ザコ</label>
       <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
         <select 
           onChange={(e) => setSelectedFieldToDelete(e.target.value)} 
