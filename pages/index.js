@@ -190,7 +190,8 @@ return (
         fontSize: "1.5rem", 
         whiteSpace: "nowrap", 
         textAlign: "center",
-        marginBottom: "20px"  
+        marginBottom: "20px" , 
+　　　　marginTop: "20px" 
       }}>
         Cap Management for ReRyss
       </h1>
@@ -228,8 +229,9 @@ return (
   onClick={() => setIsExtraFieldsVisible(!isExtraFieldsVisible)} 
   style={{
     marginBottom: "10px",
-    padding: "8px",
-    fontSize: "14px",
+    padding: "4px 8px",  // 🔥 上下のパディングを減らす (4px)
+    fontSize: "12px",
+    lineHeight: "1.2",    // 🔥 行の高さを小さくする (1.2)
     cursor: "pointer",
     width: "100%",
     textAlign: "center",
@@ -237,7 +239,7 @@ return (
     borderRadius: "5px"
   }}
 >
-  {isExtraFieldsVisible ? "▼ 追加・削除を隠す" : "▶ 追加・削除を表示"}
+  {isExtraFieldsVisible ? "▼ 追加・追放を隠す" : "▶ 追加・追放を表示"}
 </button>
 
 {/* 追加・削除のフォーム（表示時のみ） */}
