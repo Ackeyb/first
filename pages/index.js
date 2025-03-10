@@ -22,8 +22,6 @@ export default function Home() {
   const [tempData, setTempData] = useState({});
 　const [isExtraFieldsVisible, setIsExtraFieldsVisible] = useState(false);
 
-
-
   useEffect(() => {
     const fetchDocs = async () => {
       const querySnapshot = await getDocs(collection(db, "capstock"));
@@ -40,50 +38,52 @@ export default function Home() {
     fetchDocs();
   }, []);
 
-const fetchSelectedDoc = async () => {
-  if (!selectedDoc) {
-    console.error("selectedDoc が選択されていません");
-    return;
-  }
-
-  try {
-    const docRef = doc(db, "capstock", selectedDoc);
-    const docSnap = await getDoc(docRef);
-
-    if (docSnap.exists()) {
-      const data = docSnap.data();
-      console.log("Firestore のデータ:", data);
-
-      // 🔥 `_order` に従って並び替え
-      const orderedKeys = data._order || Object.keys(data);
-      const sortedData = Object.fromEntries(
-        orderedKeys.filter((key) => key !== "_order").map((key) => [key, data[key]])
-      );
-
-      setTempData(sortedData);
-      setFieldList(orderedKeys.filter((key) => key !== "_order"));
-
-      // 🔥 並び順を維持した状態でプレビュー表示
-      setPreviewText(
-        orderedKeys
-          .filter((key) => key !== "_order")
-          .map((key) => `${key}: ${data[key]}`)
-          .join("\n")
-      );
-
-      setIsDisplayed(true);
-    } else {
-      console.warn("データが見つかりません:", selectedDoc);
-      setTempData({});
-      setPreviewText("データが見つかりません");
-      setFieldList([]);
-      setIsDisplayed(false);
+  {/* データを取得する */}
+  const fetchSelectedDoc = async () => {
+    if (!selectedDoc) {
+      console.error("selectedDoc が選択されていません");
+      return;
     }
-  } catch (error) {
-    console.error("fetchSelectedDoc のエラー:", error);
-  }
-};
 
+    try {
+      const docRef = doc(db, "capstock", selectedDoc);
+      const docSnap = await getDoc(docRef);
+
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        console.log("Firestore のデータ:", data);
+
+        // `_order` に従って並び替え
+        const orderedKeys = data._order || Object.keys(data);
+        const sortedData = Object.fromEntries(
+          orderedKeys.filter((key) => key !== "_order").map((key) => [key, data[key]])
+        );
+
+        setTempData(sortedData);
+        setFieldList(orderedKeys.filter((key) => key !== "_order"));
+
+        // 並び順を維持した状態でプレビュー表示
+        setPreviewText(
+          orderedKeys
+            .filter((key) => key !== "_order")
+            .map((key) => `${key}: ${data[key]}`)
+            .join("\n")
+        );
+
+        setIsDisplayed(true);
+      } else {
+        console.warn("データが見つかりません:", selectedDoc);
+        setTempData({});
+        setPreviewText("データが見つかりません");
+        setFieldList([]);
+        setIsDisplayed(false);
+      }
+    } catch (error) {
+      console.error("fetchSelectedDoc のエラー:", error);
+    }
+  };
+
+  {/* プレビューと履歴を表示 */}
   const handleUpdateField = () => {
     if (!selectedField || updateValue === "") return;
     const oldValue = tempData[selectedField] || 0;
@@ -101,8 +101,9 @@ const fetchSelectedDoc = async () => {
   const changeSymbol = newValue - oldValue >= 0 ?  `+${changeAmount}` : `-${changeAmount}` ;
   const newHistoryEntry = `${selectedField}: ${oldValue} → ${newValue} (${changeSymbol})`;
   setPreviewHistory((prevHistory) => prevHistory + (prevHistory ? "\n" : "") + newHistoryEntry);
-};
+  };
 
+  {/* プレビューをクリップボードにコピーする */}
   const handleCopyToClipboard = () => {
     if (!isSaved) return;
     navigator.clipboard.writeText(previewText).then(() => {
@@ -111,219 +112,220 @@ const fetchSelectedDoc = async () => {
     });
   };
 
-const handleAddField = () => {
-  if (!newFieldName || newFieldValue === "") return;
-  const numericValue = Number(newFieldValue);
-  const updatedData = { ...tempData, [newFieldName]: numericValue };
+  {/* 酒クズを追加する */}
+  const handleAddField = () => {
+    if (!newFieldName || newFieldValue === "") return;
+    const numericValue = Number(newFieldValue);
+    const updatedData = { ...tempData, [newFieldName]: numericValue };
 
-  setTempData(updatedData);
-  setFieldList(Object.keys(updatedData));
-  setPreviewText(
-    Object.entries(updatedData)
-      .map(([key, value]) => `${key}: ${value}`)
-      .join("\n")
-  );
+    setTempData(updatedData);
+    setFieldList(Object.keys(updatedData));
+    setPreviewText(
+      Object.entries(updatedData)
+        .map(([key, value]) => `${key}: ${value}`)
+        .join("\n")
+    );
 
-  // 履歴に追加
-  const newHistoryEntry = `追加: ${newFieldName} (${numericValue})`;
-  setPreviewHistory((prevHistory) => prevHistory + (prevHistory ? "\n" : "") + newHistoryEntry);
-};
+    // 履歴に追加
+    const newHistoryEntry = `追加: ${newFieldName} (${numericValue})`;
+    setPreviewHistory((prevHistory) => prevHistory + (prevHistory ? "\n" : "") + newHistoryEntry);
+  };
 
-const handleDeleteField = () => {
-  if (!selectedFieldToDelete) return;
+  {/* 酒ザコを追放する */}
+  const handleDeleteField = () => {
+    if (!selectedFieldToDelete) return;
 
-  // 削除する値を取得
-  const oldValue = tempData[selectedFieldToDelete];
+    // 削除する値を取得
+    const oldValue = tempData[selectedFieldToDelete];
 
-  // データを更新
-  const updatedData = { ...tempData };
-  delete updatedData[selectedFieldToDelete];
+    // データを更新
+    const updatedData = { ...tempData };
+    delete updatedData[selectedFieldToDelete];
 
-  setTempData(updatedData);
-  setFieldList(Object.keys(updatedData));
-  setPreviewText(
-    Object.entries(updatedData)
-      .map(([key, value]) => `${key}: ${value}`)
-      .join("\n")
-  );
+    setTempData(updatedData);
+    setFieldList(Object.keys(updatedData));
+    setPreviewText(
+      Object.entries(updatedData)
+        .map(([key, value]) => `${key}: ${value}`)
+        .join("\n")
+    );
 
-  // 履歴に追加
-  const newHistoryEntry = `追放: ${selectedFieldToDelete} (${oldValue})`;
-  setPreviewHistory((prevHistory) => prevHistory + (prevHistory ? "\n" : "") + newHistoryEntry);
-};
+    // 履歴に追加
+    const newHistoryEntry = `追放: ${selectedFieldToDelete} (${oldValue})`;
+    setPreviewHistory((prevHistory) => prevHistory + (prevHistory ? "\n" : "") + newHistoryEntry);
+  };
 
+  {/* データを保存する */}
+  const handleSaveData = async () => {
+    if (!selectedDoc || !isDisplayed) return;
 
-const handleSaveData = async () => {
-  if (!selectedDoc || !isDisplayed) return;
+    let baseTimestamp = new Date();
+    baseTimestamp.setHours(baseTimestamp.getHours() + 9);
+    let jstTimestamp = baseTimestamp.toISOString().split("T")[0]; // YYYY-MM-DD 形式
+    let newDocName = jstTimestamp;
+    let counter = 1;
+    while (docList.includes(newDocName)) {
+      newDocName = `${jstTimestamp}-${counter}`;
+      counter++;
+    }
 
-  let baseTimestamp = new Date();
-  baseTimestamp.setHours(baseTimestamp.getHours() + 9);
-  let jstTimestamp = baseTimestamp.toISOString().split("T")[0]; // YYYY-MM-DD 形式
-  let newDocName = jstTimestamp;
-  let counter = 1;
-  while (docList.includes(newDocName)) {
-    newDocName = `${jstTimestamp}-${counter}`;
-    counter++;
-  }
+    // Firestore に保存するデータを構築
+    let saveData = { ...tempData };
 
-  // ✅ Firestore に保存するデータを構築
-  let saveData = { ...tempData };
+    // `_order` を現在のキー一覧で洗い替え
+    saveData["_order"] = Object.keys(saveData).filter(key => key !== "_order");
 
-  // 🔄 `_order` を現在のキー一覧で洗い替え
-  saveData["_order"] = Object.keys(saveData).filter(key => key !== "_order");
+    // Firestore に保存
+    const newDocRef = doc(db, "capstock", newDocName);
+    await setDoc(newDocRef, saveData);
 
-  // 🔥 Firestore に保存
-  const newDocRef = doc(db, "capstock", newDocName);
-  await setDoc(newDocRef, saveData);
+    // ステートを更新
+    setIsSaved(true);
+    setDocList([newDocName, ...docList].slice(0, 20)); // 20件まで保持
+  };
 
-  // ✅ ステートを更新
-  setIsSaved(true);
-  setDocList([newDocName, ...docList].slice(0, 20)); // 20件まで保持
-};
-
-return (
-  <div>
-    {/* タイトル */}
-    <div style={{ display: "flex", justifyContent: "center", width: "100%" }}>
-      <h1 style={{ 
-        color: "red", 
-        borderBottom: "2px solid red", 
-        paddingBottom: "5px",  
-        fontSize: "1.5rem", 
-        whiteSpace: "nowrap", 
-        textAlign: "center",
-        marginBottom: "20px" , 
-　　　　marginTop: "20px" 
-      }}>
-        Cap Management for ReRyss
-      </h1>
-    </div>
-
-    {/* データを選択 */}
-    <div style={{ marginBottom: "20px" }}>
-      <label style={{ display: "block", marginBottom: "5px" }}>データを選択</label>
-      <select onChange={(e) => setSelectedDoc(e.target.value)} value={selectedDoc} style={{ width: "60%" }}>
-        <option value="">-- データを選択しやがれ --</option>
-        {docList.map((docName) => (
-          <option key={docName} value={docName}>{docName}</option>
-        ))}
-      </select>
-      <button onClick={fetchSelectedDoc} disabled={!selectedDoc} style={{ marginLeft: "10px", width: "20%" }}>表示する</button>
-    </div>
-
-    {/* 編集する酒クズ */}
-    <div style={{ marginBottom: "20px" }}>
-      <label style={{ display: "block", marginBottom: "5px" }}>編集する酒クズ</label>
-      <select onChange={(e) => setSelectedField(e.target.value)} value={selectedField} style={{ width: "40%" }}>
-        <option value="">酒クズ選択</option>
-        {fieldList.map((field) => (
-          <option key={field} value={field}>{field}</option>
-        ))}
-      </select>
-      <input type="number" placeholder="数" value={updateValue} onChange={(e) => setUpdateValue(e.target.value)} style={{ marginLeft: "10px", width: "10%" }} />
-      <input type="radio" name="operation" value="increase" checked={operation === "increase"} onChange={() => setOperation("increase")} style={{ marginLeft: "10px" }} /> 増
-      <input type="radio" name="operation" value="decrease" checked={operation === "decrease"} onChange={() => setOperation("decrease")} style={{ marginLeft: "10px" }} /> 減
-      <button onClick={handleUpdateField} style={{ marginLeft: "10px", width: "15%" }}>反映</button>
-    </div>
-
-{/* 追加・削除を表示/非表示にするボタン */}
-<button 
-  onClick={() => setIsExtraFieldsVisible(!isExtraFieldsVisible)} 
-  style={{
-    marginBottom: "10px",
-    padding: "4px 8px",  // 🔥 上下のパディングを減らす (4px)
-    fontSize: "12px",
-    lineHeight: "1.2",    // 🔥 行の高さを小さくする (1.2)
-    cursor: "pointer",
-    width: "100%",
-    textAlign: "center",
-    border: "1px solid #ccc",
-    borderRadius: "5px"
-  }}
->
-  {isExtraFieldsVisible ? "▼ 追加・追放を隠す" : "▶ 追加・追放を表示"}
-</button>
-
-{/* 追加・削除のフォーム（表示時のみ） */}
-{isExtraFieldsVisible && (
-  <div style={{ marginBottom: "20px", padding: "10px", border: "1px solid #ccc", borderRadius: "5px" }}>
-    
-    {/* 追加する酒クズ */}
-    <div style={{ marginBottom: "15px" }}>
-      <label style={{ display: "block", marginBottom: "5px" }}>追加する酒クズ</label>
-      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-        <input 
-          type="text" 
-          placeholder="酒クズ名" 
-          value={newFieldName} 
-          onChange={(e) => setNewFieldName(e.target.value)} 
-          style={{ flex: "1", padding: "8px", border: "1px solid #ccc", borderRadius: "5px" }} 
-        />
-        <input 
-          type="number" 
-          placeholder="数" 
-          value={newFieldValue} 
-          onChange={(e) => setNewFieldValue(e.target.value)} 
-          style={{ width: "80px", padding: "8px", border: "1px solid #ccc", borderRadius: "5px" }} 
-        />
-        <button 
-          onClick={handleAddField} 
-          style={{ padding: "8px", cursor: "pointer", borderRadius: "5px", border: "1px solid #ccc" }}
-        >
-          追加
-        </button>
-      </div>
-    </div>
-
-    {/* 追放する酒ザコ */}
+  return (
     <div>
-      <label style={{ display: "block", marginBottom: "5px" }}>追放する酒ザコ</label>
-      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-        <select 
-          onChange={(e) => setSelectedFieldToDelete(e.target.value)} 
-          value={selectedFieldToDelete} 
-          style={{ flex: "1", padding: "8px", border: "1px solid #ccc", borderRadius: "5px" }}
-        >
-          <option value="">追放酒ザコ選択</option>
+      {/* タイトル */}
+      <div style={{ display: "flex", justifyContent: "center", width: "100%" }}>
+        <h1 style={{ 
+          color: "red", 
+          borderBottom: "2px solid red", 
+          paddingBottom: "5px",  
+          fontSize: "1.5rem", 
+          whiteSpace: "nowrap", 
+          textAlign: "center",
+          marginBottom: "20px" , 
+  　　　　marginTop: "20px" 
+        }}>
+          Cap Management for ReRyss
+        </h1>
+      </div>
+
+      {/* データを選択 */}
+      <div style={{ marginBottom: "20px" }}>
+        <label style={{ display: "block", marginBottom: "5px" }}>データを選択</label>
+        <select onChange={(e) => setSelectedDoc(e.target.value)} value={selectedDoc} style={{ width: "60%" }}>
+          <option value="">-- データを選択しやがれ --</option>
+          {docList.map((docName) => (
+            <option key={docName} value={docName}>{docName}</option>
+          ))}
+        </select>
+        <button onClick={fetchSelectedDoc} disabled={!selectedDoc} style={{ marginLeft: "10px", width: "20%" }}>表示する</button>
+      </div>
+
+      {/* 編集する酒クズ */}
+      <div style={{ marginBottom: "20px" }}>
+        <label style={{ display: "block", marginBottom: "5px" }}>編集する酒クズ</label>
+        <select onChange={(e) => setSelectedField(e.target.value)} value={selectedField} style={{ width: "40%" }}>
+          <option value="">酒クズ選択</option>
           {fieldList.map((field) => (
             <option key={field} value={field}>{field}</option>
           ))}
         </select>
-        <button 
-          onClick={handleDeleteField} 
-          style={{ padding: "8px", cursor: "pointer", borderRadius: "5px", border: "1px solid #ccc" }}
-        >
-          追放
-        </button>
+        <input type="number" placeholder="数" value={updateValue} onChange={(e) => setUpdateValue(e.target.value)} style={{ marginLeft: "10px", width: "10%" }} />
+        <input type="radio" name="operation" value="increase" checked={operation === "increase"} onChange={() => setOperation("increase")} style={{ marginLeft: "10px" }} /> 増
+        <input type="radio" name="operation" value="decrease" checked={operation === "decrease"} onChange={() => setOperation("decrease")} style={{ marginLeft: "10px" }} /> 減
+        <button onClick={handleUpdateField} style={{ marginLeft: "10px", width: "15%" }}>反映</button>
+      </div>
+
+      {/* 追加・削除を表示/非表示にするボタン */}
+      <button 
+        onClick={() => setIsExtraFieldsVisible(!isExtraFieldsVisible)} 
+        style={{
+          marginBottom: "10px",
+          padding: "4px 8px",  // 🔥 上下のパディングを減らす (4px)
+          fontSize: "12px",
+          lineHeight: "1.2",    // 🔥 行の高さを小さくする (1.2)
+          cursor: "pointer",
+          width: "100%",
+          textAlign: "center",
+          border: "1px solid #ccc",
+          borderRadius: "5px"
+        }}
+      >
+        {isExtraFieldsVisible ? "▼ 追加・追放を隠す" : "▶ 追加・追放を表示"}
+      </button>
+
+      {/* 追加・削除のフォーム（表示時のみ） */}
+      {isExtraFieldsVisible && (
+        <div style={{ marginBottom: "20px", padding: "10px", border: "1px solid #ccc", borderRadius: "5px" }}>
+      
+          {/* 追加する酒クズ */}
+          <div style={{ marginBottom: "15px" }}>
+            <label style={{ display: "block", marginBottom: "5px" }}>追加する酒クズ</label>
+            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              <input 
+                type="text" 
+                placeholder="酒クズ名" 
+                value={newFieldName} 
+                onChange={(e) => setNewFieldName(e.target.value)} 
+                style={{ flex: "1", padding: "8px", border: "1px solid #ccc", borderRadius: "5px" }} 
+              />
+              <input 
+                type="number" 
+                placeholder="数" 
+                value={newFieldValue} 
+                onChange={(e) => setNewFieldValue(e.target.value)} 
+                style={{ width: "80px", padding: "8px", border: "1px solid #ccc", borderRadius: "5px" }} 
+              />
+              <button 
+                onClick={handleAddField} 
+                style={{ padding: "8px", cursor: "pointer", borderRadius: "5px", border: "1px solid #ccc" }}
+              >
+                追加
+              </button>
+            </div>
+          </div>
+
+          {/* 追放する酒ザコ */}
+          <div>
+            <label style={{ display: "block", marginBottom: "5px" }}>追放する酒ザコ</label>
+            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              <select 
+                onChange={(e) => setSelectedFieldToDelete(e.target.value)} 
+                value={selectedFieldToDelete} 
+                style={{ flex: "1", padding: "8px", border: "1px solid #ccc", borderRadius: "5px" }}
+              >
+                <option value="">追放酒ザコ選択</option>
+                {fieldList.map((field) => (
+                  <option key={field} value={field}>{field}</option>
+                ))}
+              </select>
+              <button 
+                onClick={handleDeleteField} 
+                style={{ padding: "8px", cursor: "pointer", borderRadius: "5px", border: "1px solid #ccc" }}
+              >
+                追放
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* プレビュー & 履歴 */}
+      <div style={{ display: "flex", gap: "5px", justifyContent: "center", marginBottom: "20px" }}>
+        <div style={{ width: "44%" }}>
+          <label style={{ display: "block", marginBottom: "5px" }}>プレビュー</label>
+          <textarea value={previewText} readOnly rows={isMobile ? 10 : 16} style={{ width: "100%", marginTop: "5px" }}></textarea>
+        </div>
+        <div style={{ width: "52%" }}>
+          <label style={{ display: "block", marginBottom: "5px" }}>履歴</label>
+          <textarea value={previewHistory} readOnly rows={isMobile ? 10 : 16} style={{ width: "100%", marginTop: "5px" }}></textarea>
+        </div>
+      </div>
+
+      {/* 保存ボタン */}
+      <div style={{ display: "flex", alignItems: "center", marginBottom: "20px" }}>
+        <button onClick={handleSaveData} disabled={!isDisplayed} style={{ width: "40%" }}>データを保存</button>
+        {isSaved && <span style={{ marginLeft: "10px", color: "limegreen" }}>保存してやったぜ！</span>}
+      </div>
+
+      {/* コピー ボタン */}
+      <div style={{ display: "flex", alignItems: "center" }}>
+        <button onClick={handleCopyToClipboard} disabled={!isSaved} style={{ width: "40%" }}>テキストをコピー</button>
+        {isCopied && <span style={{ marginLeft: "10px", color: "limegreen" }}>コピー完了！</span>}
       </div>
     </div>
-
-  </div>
-)}
-
-    {/* プレビュー & 履歴 */}
-    <div style={{ display: "flex", gap: "5px", justifyContent: "center", marginBottom: "20px" }}>
-      <div style={{ width: "48%" }}>
-        <label style={{ display: "block", marginBottom: "5px" }}>プレビュー</label>
-        <textarea value={previewText} readOnly rows={isMobile ? 10 : 15} style={{ width: "100%", marginTop: "5px" }}></textarea>
-      </div>
-      <div style={{ width: "48%" }}>
-        <label style={{ display: "block", marginBottom: "5px" }}>履歴</label>
-        <textarea value={previewHistory} readOnly rows={isMobile ? 10 : 15} style={{ width: "100%", marginTop: "5px" }}></textarea>
-      </div>
-    </div>
-
-    {/* 保存ボタン */}
-    <div style={{ display: "flex", alignItems: "center", marginBottom: "20px" }}>
-      <button onClick={handleSaveData} disabled={!isDisplayed} style={{ width: "40%" }}>データを保存</button>
-      {isSaved && <span style={{ marginLeft: "10px", color: "limegreen" }}>保存してやったぜ！</span>}
-    </div>
-
-    {/* コピー ボタン */}
-    <div style={{ display: "flex", alignItems: "center" }}>
-      <button onClick={handleCopyToClipboard} disabled={!isSaved} style={{ width: "40%" }}>テキストをコピー</button>
-      {isCopied && <span style={{ marginLeft: "10px", color: "limegreen" }}>コピー完了！</span>}
-    </div>
-  </div>
-);
+  );
 }
