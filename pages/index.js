@@ -305,11 +305,11 @@ export default function Home() {
 
       {/* プレビュー & 履歴 */}
       <div style={{ display: "flex", gap: "5px", justifyContent: "center", marginBottom: "20px" }}>
-        <div style={{ width: "44%" }}>
+        <div style={{ width: "40%" }}>
           <label style={{ display: "block", marginBottom: "5px" }}>プレビュー</label>
           <textarea value={previewText} readOnly rows={isMobile ? 10 : 16} style={{ width: "100%", marginTop: "5px" }}></textarea>
         </div>
-        <div style={{ width: "52%" }}>
+        <div style={{ width: "56%" }}>
           <label style={{ display: "block", marginBottom: "5px" }}>履歴</label>
           <textarea value={previewHistory} readOnly rows={isMobile ? 10 : 16} style={{ width: "100%", marginTop: "5px" }}></textarea>
         </div>
