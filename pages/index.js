@@ -23,6 +23,8 @@ export default function Home() {
 　const [isExtraFieldsVisible, setIsExtraFieldsVisible] = useState(false);
 
   useEffect(() => {
+    document.body.style.backgroundColor = "#121212";
+    document.body.style.color = "#ffffff";
     const fetchDocs = async () => {
       const querySnapshot = await getDocs(collection(db, "capstock"));
       let docs = querySnapshot.docs.map((doc) => doc.id);
@@ -98,9 +100,12 @@ export default function Home() {
         .join("\n")
     );
 
-  const changeSymbol = newValue - oldValue >= 0 ?  `+${changeAmount}` : `-${changeAmount}` ;
-  const newHistoryEntry = `${selectedField}: ${oldValue} → ${newValue} (${changeSymbol})`;
-  setPreviewHistory((prevHistory) => prevHistory + (prevHistory ? "\n" : "") + newHistoryEntry);
+    // 数量をクリア
+    setUpdateValue("");
+
+    const changeSymbol = newValue - oldValue >= 0 ?  `+${changeAmount}` : `-${changeAmount}` ;
+    const newHistoryEntry = `${selectedField}: ${oldValue} → ${newValue} (${changeSymbol})`;
+    setPreviewHistory((prevHistory) => prevHistory + (prevHistory ? "\n" : "") + newHistoryEntry);
   };
 
   {/* プレビューをクリップボードにコピーする */}
@@ -195,7 +200,7 @@ export default function Home() {
           fontSize: "1.5rem", 
           whiteSpace: "nowrap", 
           textAlign: "center",
-          marginBottom: "20px" , 
+          marginBottom: "15px" , 
   　　　　marginTop: "20px" 
         }}>
           Cap Management for ReRyss
@@ -203,7 +208,7 @@ export default function Home() {
       </div>
 
       {/* データを選択 */}
-      <div style={{ marginBottom: "20px" }}>
+      <div style={{ marginBottom: "15px" }}>
         <label style={{ display: "block", marginBottom: "5px" }}>データを選択</label>
         <select onChange={(e) => setSelectedDoc(e.target.value)} value={selectedDoc} style={{ width: "60%" }}>
           <option value="">-- データを選択しやがれ --</option>
@@ -215,7 +220,7 @@ export default function Home() {
       </div>
 
       {/* 編集する酒クズ */}
-      <div style={{ marginBottom: "20px" }}>
+      <div style={{ marginBottom: "15px" }}>
         <label style={{ display: "block", marginBottom: "5px" }}>編集する酒クズ</label>
         <select onChange={(e) => setSelectedField(e.target.value)} value={selectedField} style={{ width: "40%" }}>
           <option value="">酒クズ選択</option>
@@ -249,7 +254,7 @@ export default function Home() {
 
       {/* 追加・削除のフォーム（表示時のみ） */}
       {isExtraFieldsVisible && (
-        <div style={{ marginBottom: "20px", padding: "10px", border: "1px solid #ccc", borderRadius: "5px" }}>
+        <div style={{ marginBottom: "15px", padding: "10px", border: "1px solid #ccc", borderRadius: "5px" }}>
       
           {/* 追加する酒クズ */}
           <div style={{ marginBottom: "15px" }}>
@@ -304,19 +309,19 @@ export default function Home() {
       )}
 
       {/* プレビュー & 履歴 */}
-      <div style={{ display: "flex", gap: "5px", justifyContent: "center", marginBottom: "20px" }}>
+      <div style={{ display: "flex", gap: "5px", justifyContent: "center", marginBottom: "15px" }}>
         <div style={{ width: "40%" }}>
           <label style={{ display: "block", marginBottom: "5px" }}>プレビュー</label>
-          <textarea value={previewText} readOnly rows={isMobile ? 10 : 16} style={{ width: "100%", marginTop: "5px" }}></textarea>
+          <textarea value={previewText} readOnly rows={isMobile ? 10 : 18} style={{ width: "100%", marginTop: "5px" }}></textarea>
         </div>
         <div style={{ width: "56%" }}>
           <label style={{ display: "block", marginBottom: "5px" }}>履歴</label>
-          <textarea value={previewHistory} readOnly rows={isMobile ? 10 : 16} style={{ width: "100%", marginTop: "5px" }}></textarea>
+          <textarea value={previewHistory} readOnly rows={isMobile ? 10 : 18} style={{ width: "100%", marginTop: "5px" }}></textarea>
         </div>
       </div>
 
       {/* 保存ボタン */}
-      <div style={{ display: "flex", alignItems: "center", marginBottom: "20px" }}>
+      <div style={{ display: "flex", alignItems: "center", marginBottom: "15px" }}>
         <button onClick={handleSaveData} disabled={!isDisplayed} style={{ width: "40%" }}>データを保存</button>
         {isSaved && <span style={{ marginLeft: "10px", color: "limegreen" }}>保存してやったぜ！</span>}
       </div>
