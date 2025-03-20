@@ -88,26 +88,46 @@ export default function Home() {
   {/* プレビューと履歴を表示 */}
   const handleUpdateField = () => {
     if (!selectedField || updateValue === "") return;
+  
     const oldValue = tempData[selectedField] || 0;
     const changeAmount = Number(updateValue);
-    const newValue = operation === "increase" ? oldValue + changeAmount : oldValue - changeAmount;
-
-    const updatedData = { ...tempData, [selectedField]: newValue };
+    let newValue = operation === "increase" ? oldValue + changeAmount : oldValue - changeAmount;
+  
+    let updatedData = { ...tempData };
+    let historyEntries = [];
+  
+    // マイナス処理
+    if (newValue < 0 && selectedField !== "マイナス") {
+      const minusChange = newValue; // 負の値をそのまま
+      updatedData["マイナス"] = (updatedData["マイナス"] || 0) + minusChange; // マイナス分を加算
+      newValue = 0; // 該当フィールドは0にする
+  
+      // `"マイナス"` への変動も履歴に追加
+      historyEntries.push(`マイナス: ${tempData["マイナス"] || 0} → ${updatedData["マイナス"]} (${minusChange})`);
+    }
+  
+    // 更新対象フィールドの値をセット
+    updatedData[selectedField] = newValue;
+  
+    // 該当フィールドの履歴エントリを作成
+    const fieldChange = newValue - oldValue;
+    historyEntries.push(`${selectedField}: ${oldValue} → ${newValue} (${fieldChange >= 0 ? `+${fieldChange}` : fieldChange})`);
+  
+    // 状態を更新
     setTempData(updatedData);
     setPreviewText(
       Object.entries(updatedData)
         .map(([key, value]) => `${key}: ${value}`)
         .join("\n")
     );
-
+  
+    // 履歴に追加
+    setPreviewHistory((prevHistory) => prevHistory + (prevHistory ? "\n" : "") + historyEntries.join("\n"));
+  
     // 数量をクリア
     setUpdateValue("");
-
-    const changeSymbol = newValue - oldValue >= 0 ?  `+${changeAmount}` : `-${changeAmount}` ;
-    const newHistoryEntry = `${selectedField}: ${oldValue} → ${newValue} (${changeSymbol})`;
-    setPreviewHistory((prevHistory) => prevHistory + (prevHistory ? "\n" : "") + newHistoryEntry);
   };
-
+    
   {/* プレビューをクリップボードにコピーする */}
   const handleCopyToClipboard = () => {
     if (!isSaved) return;
