@@ -21,6 +21,8 @@ export default function Home() {
   const isMobile = useMediaQuery({ maxWidth: 768 });
   const [tempData, setTempData] = useState({});
 　const [isExtraFieldsVisible, setIsExtraFieldsVisible] = useState(false);
+  const [previousData, setPreviousData] = useState({});
+  const [baseDataForDiff, setBaseDataForDiff] = useState({});
 
   useEffect(() => {
     document.body.style.backgroundColor = "#121212";
@@ -41,90 +43,106 @@ export default function Home() {
   }, []);
 
   {/* データを取得する */}
-  const fetchSelectedDoc = async () => {
-    if (!selectedDoc) {
-      console.error("selectedDoc が選択されていません");
-      return;
+const fetchSelectedDoc = async () => {
+  if (!selectedDoc) {
+    console.error("selectedDoc が選択されていません");
+    return;
+  }
+
+  try {
+    const docRef = doc(db, "capstock", selectedDoc);
+    const docSnap = await getDoc(docRef);
+
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      const orderedKeys = data._order || Object.keys(data);
+      const sortedData = Object.fromEntries(
+        orderedKeys
+          .filter((key) => key !== "_order")
+          .map((key) => [key, data[key]])
+      );
+
+      // 現在データと比較基準を別々に保持
+      setTempData(sortedData);
+      setBaseDataForDiff(sortedData);
+      setFieldList(orderedKeys.filter((key) => key !== "_order"));
+
+      // 並び順を維持した状態でプレビュー表示
+      setPreviewText(
+        orderedKeys
+          .filter((key) => key !== "_order")
+          .map((key) => `${key}: ${data[key]}`)
+          .join("\n")
+      );
+
+      setIsDisplayed(true);
+    } else {
+      console.warn("データが見つかりません:", selectedDoc);
+      setTempData({});
+      setPreviewText("データが見つかりません");
+      setFieldList([]);
+      setIsDisplayed(false);
     }
-
-    try {
-      const docRef = doc(db, "capstock", selectedDoc);
-      const docSnap = await getDoc(docRef);
-
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        console.log("Firestore のデータ:", data);
-
-        // `_order` に従って並び替え
-        const orderedKeys = data._order || Object.keys(data);
-        const sortedData = Object.fromEntries(
-          orderedKeys.filter((key) => key !== "_order").map((key) => [key, data[key]])
-        );
-
-        setTempData(sortedData);
-        setFieldList(orderedKeys.filter((key) => key !== "_order"));
-
-        // 並び順を維持した状態でプレビュー表示
-        setPreviewText(
-          orderedKeys
-            .filter((key) => key !== "_order")
-            .map((key) => `${key}: ${data[key]}`)
-            .join("\n")
-        );
-
-        setIsDisplayed(true);
-      } else {
-        console.warn("データが見つかりません:", selectedDoc);
-        setTempData({});
-        setPreviewText("データが見つかりません");
-        setFieldList([]);
-        setIsDisplayed(false);
-      }
-    } catch (error) {
-      console.error("fetchSelectedDoc のエラー:", error);
-    }
-  };
+  } catch (error) {
+    console.error("fetchSelectedDoc のエラー:", error);
+  }
+};
 
   {/* プレビューと履歴を表示 */}
   const handleUpdateField = () => {
     if (!selectedField || updateValue === "") return;
-  
+
     const oldValue = tempData[selectedField] || 0;
     const changeAmount = Number(updateValue);
-    let newValue = operation === "increase" ? oldValue + changeAmount : oldValue - changeAmount;
-  
+
+    // 「増減」ボタンの種類で処理を分岐
+    let newValue =
+      operation === "increase" ? oldValue + changeAmount : oldValue - changeAmount;
+
+    // 負の値になった場合、「マイナス」に振り替える処理
     let updatedData = { ...tempData };
     let historyEntries = [];
-  
-    // マイナス処理
+
     if (newValue < 0 && selectedField !== "マイナス") {
-      const minusChange = newValue; // 負の値をそのまま
-      updatedData["マイナス"] = (updatedData["マイナス"] || 0) + minusChange; // マイナス分を加算
-      newValue = 0; // 該当フィールドは0にする
-  
-      // `"マイナス"` への変動も履歴に追加
-      historyEntries.push(`マイナス: ${tempData["マイナス"] || 0} → ${updatedData["マイナス"]} (${minusChange})`);
+      const minusChange = newValue;
+      updatedData["マイナス"] = (updatedData["マイナス"] || 0) + minusChange;
+      newValue = 0;
+      historyEntries.push(
+        `マイナス: ${tempData["マイナス"] || 0} → ${updatedData["マイナス"]} (${minusChange})`
+      );
     }
-  
-    // 更新対象フィールドの値をセット
+
+    // 対象フィールドを更新
     updatedData[selectedField] = newValue;
-  
-    // 該当フィールドの履歴エントリを作成
-    const fieldChange = newValue - oldValue;
-    historyEntries.push(`${selectedField}: ${oldValue} → ${newValue} (${fieldChange >= 0 ? `+${fieldChange}` : fieldChange})`);
-  
+
+    // --- 🔹 前回比付きプレビューを生成 ---
+    const previewWithDiff = Object.entries(updatedData)
+      .map(([key, value]) => {
+        // Firestore取得時の固定データ（baseDataForDiff）を基準に差分を出す
+        const baseValue = baseDataForDiff[key] ?? value;
+        const diff = value - baseValue;
+        const diffText = diff === 0 ? "" : ` (${diff > 0 ? "+" : ""}${diff})`;
+        return `${key}: ${value}${diffText}`;
+      })
+      .join("\n");
+
     // 状態を更新
     setTempData(updatedData);
-    setPreviewText(
-      Object.entries(updatedData)
-        .map(([key, value]) => `${key}: ${value}`)
-        .join("\n")
+    setPreviewText(previewWithDiff);
+
+    // 履歴を追加
+    const fieldChange = newValue - oldValue;
+    historyEntries.push(
+      `${selectedField}: ${oldValue} → ${newValue} (${
+        fieldChange >= 0 ? `+${fieldChange}` : fieldChange
+      })`
     );
-  
-    // 履歴に追加
-    setPreviewHistory((prevHistory) => prevHistory + (prevHistory ? "\n" : "") + historyEntries.join("\n"));
-  
-    // 数量をクリア
+    setPreviewHistory(
+      (prev) =>
+        prev + (prev ? "\n" : "") + historyEntries.join("\n")
+    );
+
+    // 入力欄をリセット
     setUpdateValue("");
   };
     
