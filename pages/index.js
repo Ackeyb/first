@@ -89,54 +89,54 @@ const fetchSelectedDoc = async () => {
 };
 
   {/* プレビューと履歴を表示 */}
-const handleUpdateFieldMultiple = () => {
-  if (!selectedField) return;
+  const handleUpdateFieldMultiple = () => {
+    if (!selectedField) return;
 
-  let updatedData = { ...tempData }; // 現在値コピー
-  let historyEntries = [];
+    let updatedData = { ...tempData }; // 現在値コピー
+    let historyEntries = [];
 
-  updateValues.forEach((value) => {
-    if (value === "") return;
+    updateValues.forEach((value) => {
+      if (value === "") return;
 
-    const oldValue = updatedData[selectedField] || 0;
-    let newValue = operation === "increase" ? oldValue + Number(value) : oldValue - Number(value);
+      const oldValue = updatedData[selectedField] || 0;
+      let newValue = operation === "increase" ? oldValue + Number(value) : oldValue - Number(value);
 
-    // 負の値の場合マイナスフィールドに振り替え
-    if (newValue < 0 && selectedField !== "マイナス") {
-      const minusChange = newValue;
-      updatedData["マイナス"] = (updatedData["マイナス"] || 0) + minusChange;
-      newValue = 0;
+      // 負の値の場合マイナスフィールドに振り替え
+      if (newValue < 0 && selectedField !== "マイナス") {
+        const minusChange = newValue;
+        updatedData["マイナス"] = (updatedData["マイナス"] || 0) + minusChange;
+        newValue = 0;
+        historyEntries.push(
+          `マイナス: ${tempData["マイナス"] || 0} → ${updatedData["マイナス"]} (${minusChange})`
+        );
+      }
+
+      updatedData[selectedField] = newValue;
+
+      // 履歴
+      const fieldChange = newValue - oldValue;
       historyEntries.push(
-        `マイナス: ${tempData["マイナス"] || 0} → ${updatedData["マイナス"]} (${minusChange})`
+        `${selectedField}: ${oldValue} → ${newValue} (${fieldChange >= 0 ? `+${fieldChange}` : fieldChange})`
       );
-    }
+    });
 
-    updatedData[selectedField] = newValue;
+    // 前回比付きプレビュー
+    const previewWithDiff = Object.entries(updatedData)
+      .map(([key, value]) => {
+        const baseValue = baseDataForDiff[key] ?? value;
+        const diff = value - baseValue;
+        const diffText = diff === 0 ? "" : ` (${diff > 0 ? "+" : ""}${diff})`;
+        return `${key}: ${value}${diffText}`;
+      })
+      .join("\n");
 
-    // 履歴
-    const fieldChange = newValue - oldValue;
-    historyEntries.push(
-      `${selectedField}: ${oldValue} → ${newValue} (${fieldChange >= 0 ? `+${fieldChange}` : fieldChange})`
-    );
-  });
+    setTempData(updatedData);
+    setPreviewText(previewWithDiff);
+    setPreviewHistory(prev => prev + (prev ? "\n" : "") + historyEntries.join("\n"));
 
-  // 前回比付きプレビュー
-  const previewWithDiff = Object.entries(updatedData)
-    .map(([key, value]) => {
-      const baseValue = baseDataForDiff[key] ?? value;
-      const diff = value - baseValue;
-      const diffText = diff === 0 ? "" : ` (${diff > 0 ? "+" : ""}${diff})`;
-      return `${key}: ${value}${diffText}`;
-    })
-    .join("\n");
-
-  setTempData(updatedData);
-  setPreviewText(previewWithDiff);
-  setPreviewHistory(prev => prev + (prev ? "\n" : "") + historyEntries.join("\n"));
-
-  // 入力欄をクリア
-  setUpdateValues(["", "", "", "", ""]);
-};
+    // 入力欄をクリア
+    setUpdateValues(["", "", "", "", ""]);
+  };
     
   {/* プレビューをクリップボードにコピーする */}
   const handleCopyToClipboard = () => {
@@ -272,12 +272,12 @@ const handleUpdateFieldMultiple = () => {
               newValues[i] = e.target.value;
               setUpdateValues(newValues);
             }}
-            style={{ marginLeft: "10px", width: "10%" }}
+            style={{ marginLeft: "10px", width: "9%" }}
           />
         ))}
         <input type="radio" name="operation" value="increase" checked={operation === "increase"} onChange={() => setOperation("increase")} style={{ marginLeft: "10px" }} /> 増
         <input type="radio" name="operation" value="decrease" checked={operation === "decrease"} onChange={() => setOperation("decrease")} style={{ marginLeft: "10px" }} /> 減
-        <button onClick={handleUpdateFieldMultiple} style={{ marginLeft: "10px", width: "15%" }}>反映</button>
+        <button onClick={handleUpdateFieldMultiple} style={{ marginLeft: "10px", width: "12%" }}>反映</button>
       </div>
 
       {/* 追加・削除を表示/非表示にするボタン */}
