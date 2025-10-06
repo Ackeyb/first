@@ -10,7 +10,7 @@ export default function Home() {
   const [previewHistory, setPreviewHistory] = useState("");
   const [fieldList, setFieldList] = useState([]);
   const [selectedField, setSelectedField] = useState("");
-  const [updateValue, setUpdateValue] = useState("");
+  const [updateValues, setUpdateValues] = useState(["", "", "", "", ""]);
   const [operation, setOperation] = useState("increase");
   const [isSaved, setIsSaved] = useState(false);
   const [isDisplayed, setIsDisplayed] = useState(false);
@@ -89,20 +89,19 @@ const fetchSelectedDoc = async () => {
 };
 
   {/* プレビューと履歴を表示 */}
-  const handleUpdateField = () => {
-    if (!selectedField || updateValue === "") return;
+const handleUpdateFieldMultiple = () => {
+  if (!selectedField) return;
 
-    const oldValue = tempData[selectedField] || 0;
-    const changeAmount = Number(updateValue);
+  let updatedData = { ...tempData }; // 現在値コピー
+  let historyEntries = [];
 
-    // 「増減」ボタンの種類で処理を分岐
-    let newValue =
-      operation === "increase" ? oldValue + changeAmount : oldValue - changeAmount;
+  updateValues.forEach((value) => {
+    if (value === "") return;
 
-    // 負の値になった場合、「マイナス」に振り替える処理
-    let updatedData = { ...tempData };
-    let historyEntries = [];
+    const oldValue = updatedData[selectedField] || 0;
+    let newValue = operation === "increase" ? oldValue + Number(value) : oldValue - Number(value);
 
+    // 負の値の場合マイナスフィールドに振り替え
     if (newValue < 0 && selectedField !== "マイナス") {
       const minusChange = newValue;
       updatedData["マイナス"] = (updatedData["マイナス"] || 0) + minusChange;
@@ -112,39 +111,32 @@ const fetchSelectedDoc = async () => {
       );
     }
 
-    // 対象フィールドを更新
     updatedData[selectedField] = newValue;
 
-    // --- 🔹 前回比付きプレビューを生成 ---
-    const previewWithDiff = Object.entries(updatedData)
-      .map(([key, value]) => {
-        // Firestore取得時の固定データ（baseDataForDiff）を基準に差分を出す
-        const baseValue = baseDataForDiff[key] ?? value;
-        const diff = value - baseValue;
-        const diffText = diff === 0 ? "" : ` (${diff > 0 ? "+" : ""}${diff})`;
-        return `${key}: ${value}${diffText}`;
-      })
-      .join("\n");
-
-    // 状態を更新
-    setTempData(updatedData);
-    setPreviewText(previewWithDiff);
-
-    // 履歴を追加
+    // 履歴
     const fieldChange = newValue - oldValue;
     historyEntries.push(
-      `${selectedField}: ${oldValue} → ${newValue} (${
-        fieldChange >= 0 ? `+${fieldChange}` : fieldChange
-      })`
+      `${selectedField}: ${oldValue} → ${newValue} (${fieldChange >= 0 ? `+${fieldChange}` : fieldChange})`
     );
-    setPreviewHistory(
-      (prev) =>
-        prev + (prev ? "\n" : "") + historyEntries.join("\n")
-    );
+  });
 
-    // 入力欄をリセット
-    setUpdateValue("");
-  };
+  // 前回比付きプレビュー
+  const previewWithDiff = Object.entries(updatedData)
+    .map(([key, value]) => {
+      const baseValue = baseDataForDiff[key] ?? value;
+      const diff = value - baseValue;
+      const diffText = diff === 0 ? "" : ` (${diff > 0 ? "+" : ""}${diff})`;
+      return `${key}: ${value}${diffText}`;
+    })
+    .join("\n");
+
+  setTempData(updatedData);
+  setPreviewText(previewWithDiff);
+  setPreviewHistory(prev => prev + (prev ? "\n" : "") + historyEntries.join("\n"));
+
+  // 入力欄をクリア
+  setUpdateValues(["", "", "", "", ""]);
+};
     
   {/* プレビューをクリップボードにコピーする */}
   const handleCopyToClipboard = () => {
@@ -266,10 +258,26 @@ const fetchSelectedDoc = async () => {
             <option key={field} value={field}>{field}</option>
           ))}
         </select>
-        <input type="number" placeholder="数" value={updateValue} onChange={(e) => setUpdateValue(e.target.value)} style={{ marginLeft: "10px", width: "10%" }} />
+      </div>
+
+      <div style={{ marginBottom: "15px" }}>
+        {[0,1,2,3,4].map((i) => (
+          <input
+            key={i}
+            type="number"
+            placeholder="数"
+            value={updateValues[i]}
+            onChange={(e) => {
+              const newValues = [...updateValues];
+              newValues[i] = e.target.value;
+              setUpdateValues(newValues);
+            }}
+            style={{ marginLeft: "10px", width: "10%" }}
+          />
+        ))}
         <input type="radio" name="operation" value="increase" checked={operation === "increase"} onChange={() => setOperation("increase")} style={{ marginLeft: "10px" }} /> 増
         <input type="radio" name="operation" value="decrease" checked={operation === "decrease"} onChange={() => setOperation("decrease")} style={{ marginLeft: "10px" }} /> 減
-        <button onClick={handleUpdateField} style={{ marginLeft: "10px", width: "15%" }}>反映</button>
+        <button onClick={handleUpdateFieldMultiple} style={{ marginLeft: "10px", width: "15%" }}>反映</button>
       </div>
 
       {/* 追加・削除を表示/非表示にするボタン */}
