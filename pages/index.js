@@ -141,12 +141,18 @@ const fetchSelectedDoc = async () => {
   {/* プレビューをクリップボードにコピーする */}
   const handleCopyToClipboard = () => {
     if (!isSaved) return;
-    navigator.clipboard.writeText(previewText).then(() => {
+
+    const footerText =
+      "\n\n管理ツールはコチラ https://cap-stock-for-reryss.vercel.app/";
+
+    const textToCopy = previewText + footerText;
+
+    navigator.clipboard.writeText(textToCopy).then(() => {
       setIsCopied(true);
       setTimeout(() => setIsCopied(false), 2000);
     });
   };
-
+  
   {/* 酒クズを追加する */}
   const handleAddField = () => {
     if (!newFieldName || newFieldValue === "") return;
