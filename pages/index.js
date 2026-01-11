@@ -258,7 +258,7 @@ const fetchSelectedDoc = async () => {
       {/* 編集する酒クズ */}
       <div style={{ marginBottom: "15px" }}>
         <label style={{ display: "block", marginBottom: "5px" }}>編集する酒クズ</label>
-        <select onChange={(e) => setSelectedField(e.target.value)} value={selectedField} style={{ width: "40%" }}>
+        <select onChange={(e) => setSelectedField(e.target.value)} value={selectedField} disabled={!isDisplayed} style={{ width: "40%" }}>
           <option value="">酒クズ選択</option>
           {fieldList.map((field) => (
             <option key={field} value={field}>{field}</option>
@@ -273,6 +273,7 @@ const fetchSelectedDoc = async () => {
             type="number"
             placeholder="数"
             value={updateValues[i]}
+            disabled={!isDisplayed}
             onChange={(e) => {
               const newValues = [...updateValues];
               newValues[i] = e.target.value;
@@ -281,9 +282,9 @@ const fetchSelectedDoc = async () => {
             style={{ marginLeft: "10px", width: "9%" }}
           />
         ))}
-        <input type="radio" name="operation" value="increase" checked={operation === "increase"} onChange={() => setOperation("increase")} style={{ marginLeft: "10px" }} /> 増
-        <input type="radio" name="operation" value="decrease" checked={operation === "decrease"} onChange={() => setOperation("decrease")} style={{ marginLeft: "10px" }} /> 減
-        <button onClick={handleUpdateFieldMultiple} style={{ marginLeft: "10px", width: "12%" }}>反映</button>
+        <input type="radio" name="operation" value="increase" checked={operation === "increase"} disabled={!isDisplayed} onChange={() => setOperation("increase")} style={{ marginLeft: "10px" }} /> 増
+        <input type="radio" name="operation" value="decrease" checked={operation === "decrease"} disabled={!isDisplayed} onChange={() => setOperation("decrease")} style={{ marginLeft: "10px" }} /> 減
+        <button onClick={handleUpdateFieldMultiple} disabled={!isDisplayed} style={{ marginLeft: "10px", width: "12%" }}>反映</button>
       </div>
 
       {/* 追加・削除を表示/非表示にするボタン */}
@@ -342,6 +343,7 @@ const fetchSelectedDoc = async () => {
               <select 
                 onChange={(e) => setSelectedFieldToDelete(e.target.value)} 
                 value={selectedFieldToDelete} 
+                disabled={!isDisplayed}
                 style={{ flex: "1", padding: "8px", border: "1px solid #ccc", borderRadius: "5px" }}
               >
                 <option value="">追放酒ザコ選択</option>
@@ -351,6 +353,7 @@ const fetchSelectedDoc = async () => {
               </select>
               <button 
                 onClick={handleDeleteField} 
+                disabled={!isDisplayed}
                 style={{ padding: "8px", cursor: "pointer", borderRadius: "5px", border: "1px solid #ccc" }}
               >
                 追放
