@@ -255,6 +255,20 @@ const fetchSelectedDoc = async () => {
         <button onClick={fetchSelectedDoc} disabled={!selectedDoc} style={{ marginLeft: "10px", width: "20%" }}>表示する</button>
       </div>
 
+      <div
+        style={{
+          height: "16px",
+          marginBottom: "8px",
+          fontSize: "11px",
+          color: "#aaa",
+          opacity: isDisplayed ? 0 : 1,
+          transition: "opacity 0.2s ease",
+          pointerEvents: "none",
+        }}
+      >
+        ※ 編集するには「表示する」を押してください
+      </div>
+
       {/* 編集する酒クズ */}
       <div style={{ marginBottom: "15px" }}>
         <label style={{ display: "block", marginBottom: "5px" }}>編集する酒クズ</label>
